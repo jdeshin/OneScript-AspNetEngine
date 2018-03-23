@@ -7,8 +7,8 @@
     <ProjectGuid>{FE49F8F1-9F24-40B4-A06F-905B08D564ED}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>WebBackroundJobs</RootNamespace>
-    <AssemblyName>WebBackroundJobs</AssemblyName>
+    <RootNamespace>WebBackgroundJobs</RootNamespace>
+    <AssemblyName>WebBackgroundJobs</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
