@@ -20,7 +20,7 @@ using ScriptEngine.HostedScript.Library.Binary;
 /// 
 /// </summary>
 
-namespace ScriptEngine.HTTPService
+namespace OneScript.HTTPService
 {
     /* HTTPСервисЗапрос
     * Свойства:

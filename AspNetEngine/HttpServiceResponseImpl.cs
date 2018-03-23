@@ -20,7 +20,7 @@ using ScriptEngine.HostedScript.Library.Binary;
 /// 
 /// </summary>
 
-namespace ScriptEngine.HostedScript.Library.HTTPService
+namespace OneScript.HTTPService
 {
     /*
         8.3.10.2650
