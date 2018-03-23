@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPNETHandler", "ASPNETHand
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebBackgroundJobs", "WebBackgroundJobs\WebBackgroundJobs.csproj", "{FE49F8F1-9F24-40B4-A06F-905B08D564ED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpMeans", "HttpMeans\HttpMeans.csproj", "{6466645E-0640-44E2-8637-994029405E63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{FE49F8F1-9F24-40B4-A06F-905B08D564ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE49F8F1-9F24-40B4-A06F-905B08D564ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE49F8F1-9F24-40B4-A06F-905B08D564ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6466645E-0640-44E2-8637-994029405E63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6466645E-0640-44E2-8637-994029405E63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6466645E-0640-44E2-8637-994029405E63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6466645E-0640-44E2-8637-994029405E63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
