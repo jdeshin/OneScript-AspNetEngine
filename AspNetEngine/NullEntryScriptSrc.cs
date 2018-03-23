@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 using ScriptEngine.Environment;
 
-namespace OneScript.HttpServices
+namespace OneScript.HTTPService
 {
     // Класс заглушка стартового скрипта. У нас нет стартового скрипта, поскольку это веб-приложение
     class NullEntryScriptSrc : ICodeSource

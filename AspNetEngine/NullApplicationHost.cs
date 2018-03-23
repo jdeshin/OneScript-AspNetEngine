@@ -10,7 +10,7 @@ using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Library;
 
 
-namespace OneScript.HttpServices
+namespace OneScript.HTTPService
 {
     // Класс-заглушка для вывода Сообщить.
     // Поведение как на сервере 1С
