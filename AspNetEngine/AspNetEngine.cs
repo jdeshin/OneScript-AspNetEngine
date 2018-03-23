@@ -93,21 +93,6 @@ namespace OneScript.HTTPService
             // Добавляем текущую сборку т.к. она содержит типы HTTPServiceRequest, HTTPServiceResponse
             //
             _assembliesForAttaching.Add(System.Reflection.Assembly.GetExecutingAssembly());
-            
-            // Загружаем ASPNetHandler.dll
-            //try
-            //{
-            //    _assembliesForAttaching.Add(System.Reflection.Assembly.Load("ASPNETHandler"));
-            //}
-            // TODO: Исправить - должно падать. Если конфиг сайта неработоспособен - сайт не должен быть работоспособен.
-            //catch (Exception ex)
-            //{
-            //    AspNetLog.Write(logWriter, "Error loading assembly: ASPNetHandler" + " " + ex.ToString());
-            //    if (appSettings["handlerLoadingPolicy"] == "strict")
-            //        throw; // Must fail!
-            //}
-
-            AspNetLog.Write(logWriter, "Stop assemblies loading.");
 
             // ToDo: Загружаем и компилируем общие модули
 
@@ -116,13 +101,19 @@ namespace OneScript.HTTPService
             int completionPortThreads = 0;
 
             ThreadPool.GetMaxThreads(out workerThreads, out completionPortThreads);
-
-            while (workerThreads > 0)
+            try
             {
-                _pool.Enqueue(new AspNetHostEngine());
-                workerThreads--;
+                while (workerThreads > 0)
+                {
+                    _pool.Enqueue(new AspNetHostEngine());
+                    workerThreads--;
+                }
             }
-
+            catch (Exception ex)
+            {
+                AspNetLog.Write(logWriter, ex.ToString());
+            }
+            AspNetLog.Write(logWriter, "Stop assemblies loading.");
             AspNetLog.Close(logWriter);
         }
 
@@ -132,84 +123,39 @@ namespace OneScript.HTTPService
 
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
 
-            // Инициализируем логгирование, если надо
-            TextWriter logWriter = AspNetLog.Open(appSettings);
-
-            AspNetLog.Write(logWriter, "Start loading. " + DateTime.Now.Ticks.ToString());
-
-            if (appSettings == null)
-                AspNetLog.Write(logWriter, "appSettings is null");
-
-            try
+            _hostedScript = new HostedScriptEngine();
+            // метод настраивает внутренние переменные у SystemGlobalContext
+            _hostedScript.SetGlobalEnvironment(new NullApplicationHost(), new NullEntryScriptSrc());
+            _hostedScript.Initialize();
+            // Размещаем oscript.cfg вместе с web.config. Так наверное привычнее
+            _hostedScript.CustomConfig = appSettings["configFilePath"] ?? System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oscript.cfg");
+            //_hostedScript.AttachAssembly(System.Reflection.Assembly.GetExecutingAssembly());
+            // Аттачим доп сборки. По идее должны лежать в Bin
+            foreach (System.Reflection.Assembly assembly in _assembliesForAttaching)
             {
-                _hostedScript = new HostedScriptEngine();
-                // метод настраивает внутренние переменные у SystemGlobalContext
-                _hostedScript.SetGlobalEnvironment(new NullApplicationHost(), new NullEntryScriptSrc());
-                _hostedScript.Initialize();
-                // Размещаем oscript.cfg вместе с web.config. Так наверное привычнее
-                _hostedScript.CustomConfig = appSettings["configFilePath"] ?? System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oscript.cfg");
-                //_hostedScript.AttachAssembly(System.Reflection.Assembly.GetExecutingAssembly());
-                // Аттачим доп сборки. По идее должны лежать в Bin
-                foreach (System.Reflection.Assembly assembly in _assembliesForAttaching)
+                _hostedScript.AttachAssembly(assembly);
+            }
+
+            //Загружаем библиотечные скрипты aka общие модули
+            string libPath = ConvertRelativePathToPhysical(appSettings["commonModulesPath"]);
+            if (libPath != null)
+            {
+                string[] files = System.IO.Directory.GetFiles(libPath, "*.os");
+                foreach (string filePathName in files)
                 {
-                    try
-                    {
-                        _hostedScript.AttachAssembly(assembly);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Возникла проблема при аттаче сборки
-                        AspNetLog.Write(logWriter, "Assembly attaching error: " + ex.Message);
-                        if (appSettings["handlerLoadingPolicy"] == "strict")
-                            throw;
-                    }
+                    _hostedScript.InjectGlobalProperty(System.IO.Path.GetFileNameWithoutExtension(filePathName), ValueFactory.Create(), true);
                 }
 
-                //Загружаем библиотечные скрипты aka общие модули
-                string libPath = ConvertRelativePathToPhysical(appSettings["commonModulesPath"]);
-                if (libPath != null)
+                foreach (string filePathName in files)
                 {
-                    string[] files = System.IO.Directory.GetFiles(libPath, "*.os");
-                    foreach (string filePathName in files)
-                    {
-                        _hostedScript.InjectGlobalProperty(System.IO.Path.GetFileNameWithoutExtension(filePathName), ValueFactory.Create(), true);
-                    }
+                    ICodeSource src = _hostedScript.Loader.FromFile(filePathName);
 
-                    foreach (string filePathName in files)
-                    {
-                        try
-                        {
-                            ICodeSource src = _hostedScript.Loader.FromFile(filePathName);
-
-                            var compilerService = _hostedScript.GetCompilerService();
-                            var module = compilerService.CreateModule(src);
-                            var loaded = _hostedScript.EngineInstance.LoadModuleImage(module);
-                            var instance = (IValue)_hostedScript.EngineInstance.NewObject(loaded);
-                            _hostedScript.EngineInstance.Environment.SetGlobalProperty(System.IO.Path.GetFileNameWithoutExtension(filePathName), instance);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Возникла проблема при загрузке файла os, логгируем, если логгирование включено
-                            AspNetLog.Write(logWriter, "Error loading " + System.IO.Path.GetFileNameWithoutExtension(filePathName) + " : " + ex.Message);
-                            if (appSettings["handlerLoadingPolicy"] == "strict")
-                                throw;
-                        }
-                    }
+                    var compilerService = _hostedScript.GetCompilerService();
+                    var module = compilerService.CreateModule(src);
+                    var loaded = _hostedScript.EngineInstance.LoadModuleImage(module);
+                    var instance = (IValue)_hostedScript.EngineInstance.NewObject(loaded);
+                    _hostedScript.EngineInstance.Environment.SetGlobalProperty(System.IO.Path.GetFileNameWithoutExtension(filePathName), instance);
                 }
-
-            }
-            catch (Exception ex)
-            {
-                // Возникла проблема при инициализации
-                AspNetLog.Write(logWriter, ex.ToString());
-
-                if (appSettings["handlerLoadingPolicy"] == "strict")
-                    throw; // Must fail!
-            }
-            finally
-            {
-                AspNetLog.Write(logWriter, "End loading.");
-                AspNetLog.Close(logWriter);
             }
         }
 
