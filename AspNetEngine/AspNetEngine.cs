@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Web;
 using System.Runtime.Caching;
 using System.IO;
@@ -21,7 +21,6 @@ namespace OneScript.HttpServices
     public class AspNetHostEngine
     {
         HostedScriptEngine _hostedScript;
-
         public HostedScriptEngine Engine
         {
             get
@@ -29,8 +28,10 @@ namespace OneScript.HttpServices
                 return _hostedScript;
             }
         }
+
         // Разрешает или запрещает кэширование исходников *.os В Linux должно быть false иначе после изменений исходника старая версия будет в кэше
         // web.config -> <appSettings> -> <add key="CachingEnabled" value="true"/>
+        //
         static bool _cachingEnabled;
         public static bool CachingEnabled
         {
@@ -40,14 +41,27 @@ namespace OneScript.HttpServices
             }
         }
 
+        // Поскольку одновременное создание HostEngine и выполнение кода невозможны
+        // при старте приложения создается набор Engine, которые используются для
+        // обслуживания клиентских запросов и выполнения кода в потоках
+        //
+        static System.Collections.Concurrent.ConcurrentQueue<AspNetHostEngine> _pool;
+        public static System.Collections.Concurrent.ConcurrentQueue<AspNetHostEngine> Pool
+        {
+            get
+            {
+                return _pool;
+            }
+        }
+
         // Список дополнительных сборок, которые надо приаттачить к движку. Могут быть разные расширения
         // web.config -> <appSettings> -> <add key="ASPNetHandler" value="attachAssembly"/> Сделано так для простоты. Меньше настроек - дольше жизнь :)
+        // не нужен наверное
         static List<System.Reflection.Assembly> _assembliesForAttaching;
 
         static AspNetHostEngine()
         {
-
-
+            // Загружаем сборки библиотек
             _assembliesForAttaching = new List<System.Reflection.Assembly>();
 
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
@@ -76,21 +90,34 @@ namespace OneScript.HttpServices
             }
 
             // Загружаем ASPNetHandler.dll
-            try
-            {
-                _assembliesForAttaching.Add(System.Reflection.Assembly.Load("ASPNETHandler"));
-            }
+            //try
+            //{
+            //    _assembliesForAttaching.Add(System.Reflection.Assembly.Load("ASPNETHandler"));
+            //}
             // TODO: Исправить - должно падать. Если конфиг сайта неработоспособен - сайт не должен быть работоспособен.
-            catch (Exception ex)
-            {
-                AspNetLog.Write(logWriter, "Error loading assembly: ASPNetHandler" + " " + ex.ToString());
-                if (appSettings["handlerLoadingPolicy"] == "strict")
-                    throw; // Must fail!
-            }
+            //catch (Exception ex)
+            //{
+            //    AspNetLog.Write(logWriter, "Error loading assembly: ASPNetHandler" + " " + ex.ToString());
+            //    if (appSettings["handlerLoadingPolicy"] == "strict")
+            //        throw; // Must fail!
+            //}
 
             AspNetLog.Write(logWriter, "Stop assemblies loading.");
 
             // ToDo: Загружаем и компилируем общие модули
+
+            // Создаем пул экземпляров ядра движка
+            int workerThreads = 0;
+            int completionPortThreads = 0;
+
+            ThreadPool.GetMaxThreads(out workerThreads, out completionPortThreads);
+
+            while (workerThreads > 0)
+            {
+                _pool.Enqueue(new AspNetHostEngine());
+                workerThreads--;
+            }
+
 
             AspNetLog.Close(logWriter);
         }
