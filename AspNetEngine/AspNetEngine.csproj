@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="OneScript\README.MD" />
+    <None Include="README.MD" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
