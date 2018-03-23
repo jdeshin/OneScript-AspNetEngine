@@ -55,7 +55,7 @@ namespace OneScript.HTTPService
     [ContextClass("HTTPСервисОтвет", "HTTPServiceResponse")]
     public class HTTPServiceResponseImpl : AutoContext<HTTPServiceResponseImpl>
     {
-        ScriptEngine.HostedScript.Library.MapImpl _headers = new HostedScript.Library.MapImpl();
+        ScriptEngine.HostedScript.Library.MapImpl _headers = new MapImpl();
         string _reason = "";
         int _statusCode = 200;
         string _contentCharset = Encoding.UTF8.WebName;
