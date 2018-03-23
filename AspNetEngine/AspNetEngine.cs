@@ -16,7 +16,7 @@ using ScriptEngine.HostedScript;
 
 using System.Runtime.CompilerServices;
 
-namespace OneScript.HttpServices
+namespace OneScript.HTTPService
 {
     public class AspNetHostEngine
     {
