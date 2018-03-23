@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("OneScript-AspNetEngine")]
+[assembly: AssemblyTitle("AspNetEngine")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("OneScript-AspNetEngine")]
+[assembly: AssemblyProduct("AspNetEngine")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("1f7b354e-f5a2-44a2-96e7-03c39c40e5bc")]
+[assembly: Guid("9017ab7c-e605-4ea8-9e38-cb745231657c")]
 
 // Version information for an assembly consists of the following four values:
 //

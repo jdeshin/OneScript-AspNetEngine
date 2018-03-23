@@ -259,3 +259,10 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# OneScript platform files
+AspNetEngine/OneScript/*.dll
+AspNetEngine/OneScript/*.exe
+AspNetEngine/OneScript/*.xml
+AspNetEngine/OneScript/*.cfg
+AspNetEngine/OneScript/*.zip
