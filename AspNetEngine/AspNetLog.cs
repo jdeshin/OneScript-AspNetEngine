@@ -9,7 +9,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Web;
 
-namespace OneScript.HttpServices
+namespace OneScript.HTTPService
 {
     public static class AspNetLog
     {
