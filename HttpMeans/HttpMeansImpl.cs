@@ -42,8 +42,8 @@ namespace OneScript.HTTPService
             return new HttpMeansImpl();
         }
 
-        [ContextProperty("Контекст", "Context")]
-        public HTTPServiceContextImpl Context
+        [ContextProperty("ТекущийКонтекст", "CurrentContext")]
+        public HTTPServiceContextImpl CurrentContext
         {
             get
             {
