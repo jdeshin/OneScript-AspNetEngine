@@ -89,6 +89,10 @@ namespace OneScript.HttpServices
                 }
             }
 
+            // Добавляем текущую сборку т.к. она содержит типы HTTPServiceRequest, HTTPServiceResponse
+            //
+            _assembliesForAttaching.Add(System.Reflection.Assembly.GetExecutingAssembly());
+            
             // Загружаем ASPNetHandler.dll
             //try
             //{
@@ -117,7 +121,6 @@ namespace OneScript.HttpServices
                 _pool.Enqueue(new AspNetHostEngine());
                 workerThreads--;
             }
-
 
             AspNetLog.Close(logWriter);
         }
