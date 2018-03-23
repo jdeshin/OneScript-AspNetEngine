@@ -33,7 +33,7 @@ namespace OneScript.HTTPService
         [ContextMethod("ПолучитьФизическийПутьИзВиртуального", "MapPath")]
         public string MapPath(string virtualPath)
         {
-            return HttpContext.Current.Server.MapPath(virtualPath); ;
+            return HttpContext.Current.Server.MapPath(virtualPath);
         }
 
         [ScriptConstructor(Name = "Без параметров")]
