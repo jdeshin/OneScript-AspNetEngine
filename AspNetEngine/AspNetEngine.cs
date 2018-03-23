@@ -61,6 +61,7 @@ namespace OneScript.HTTPService
 
         static AspNetHostEngine()
         {
+            _pool = new System.Collections.Concurrent.ConcurrentQueue<AspNetHostEngine>();
             // Загружаем сборки библиотек
             _assembliesForAttaching = new List<System.Reflection.Assembly>();
 
