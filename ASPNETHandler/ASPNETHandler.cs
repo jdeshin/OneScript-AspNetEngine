@@ -37,6 +37,9 @@ namespace OneScript.ASPNETHandler
         {
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
             _cachingEnabled = (appSettings["cachingEnabled"] == "true");
+
+            // Заставляем создать пул
+            int temp = AspNetHostEngine.Pool.Count;
         }
 
         public ASPNETHandler()
