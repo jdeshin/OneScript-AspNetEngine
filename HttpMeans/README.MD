@@ -22,13 +22,11 @@
 
 Методы:
 
+-ПолучитьФизическийПутьИзВиртуального. Преобразует виртуальный путь ф физический. Основа - метод [HttpContext.Current.Server.MapPath](https://msdn.microsoft.com/ru-ru/library/system.web.httpserverutility.mappath(v=vs.110).aspx)
+
 Свойства:
 
 -ТекущийКонтекст. Возвращает контекст текущего запроса (HTTPСервисКонтекст). Основа - свойство [System.Web.HttpContext.Current](https://msdn.microsoft.com/ru-ru/library/system.web.httpcontext.current%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396).
-
-Методы:
-
--ПолучитьФизическийПутьИзВиртуального. Преобразует виртуальный путь ф физический. Основа - метод [HttpContext.Current.Server.MapPath](https://msdn.microsoft.com/ru-ru/library/system.web.httpserverutility.mappath(v=vs.110).aspx)
 
 ### HTTPСервисКонтекст
 
