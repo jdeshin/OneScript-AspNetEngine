@@ -104,7 +104,7 @@ namespace OneScript.HTTPService
                 ThreadPool.GetMaxThreads(out workerThreads, out completionPortThreads);
 
                 if (appSettings["maxThreads"] != null)
-                    workerThreads = Convert.ToInt32(appSettings["commonModulesPath"]);
+                    workerThreads = Convert.ToInt32(appSettings["maxThreads"]);
 
                 AspNetLog.Write(logWriter, "Maximum count of threads is: " + workerThreads.ToString() + " / " + completionPortThreads.ToString());
 
