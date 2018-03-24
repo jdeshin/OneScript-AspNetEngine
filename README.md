@@ -1,8 +1,8 @@
-# OneScript-AspNetEngine
+﻿# OneScript-AspNetEngine
 
 ## ASPNETHandler
 Реализация полного функционала ASPNETHandler для версии 1.0.19. 
-Является патчем, к платформе.
+Является патчем к платформе.
 
 ## WebBackgroundJobs
 Реализация выполнения фоновых заданий.
