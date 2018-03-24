@@ -100,18 +100,23 @@ namespace OneScript.HTTPService
                 // Создаем пул экземпляров ядра движка
                 int workerThreads = 0;
                 int completionPortThreads = 0;
-
+                int enginesCount = 0;
                 ThreadPool.GetMaxThreads(out workerThreads, out completionPortThreads);
 
                 if (appSettings["maxThreads"] != null)
-                    workerThreads = Convert.ToInt32(appSettings["maxThreads"]);
+                    enginesCount = Convert.ToInt32(appSettings["maxThreads"]);
+                else
+                    enginesCount = workerThreads;
 
-                AspNetLog.Write(logWriter, "Maximum count of threads is: " + workerThreads.ToString() + " / " + completionPortThreads.ToString());
+                if (enginesCount > workerThreads)
+                    enginesCount = workerThreads;
 
-                while (workerThreads > 0)
+                AspNetLog.Write(logWriter, "Max threads running/worker/completionPort: " + enginesCount.ToString() + "/"+ workerThreads.ToString() + "/" + completionPortThreads.ToString());
+
+                while (enginesCount > 0)
                 {
                     _pool.Enqueue(new AspNetHostEngine());
-                    workerThreads--;
+                    enginesCount--;
                 }
             }
             catch (Exception ex)
