@@ -189,7 +189,7 @@ namespace OneScript.HTTPService
         }
     }
 
-    [EnumerationType("СостояниеФоновогоЗаданияWeb", "WebBackgroundJobStateImpl")]
+    [EnumerationType("СостояниеФоновогоЗадания", "BackgroundJobState")]
     public enum WebBackgroundJobStateImpl
     {
         [EnumItem("Активно")]
