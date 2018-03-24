@@ -63,51 +63,51 @@ namespace OneScript.HTTPService
 
         static AspNetHostEngine()
         {
-            _pool = new System.Collections.Concurrent.ConcurrentQueue<AspNetHostEngine>();
-            // Загружаем сборки библиотек
-            //_assembliesForAttaching = new List<System.Reflection.Assembly>();
 
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
 
             TextWriter logWriter = AspNetLog.Open(appSettings);
 
+            _pool = new System.Collections.Concurrent.ConcurrentQueue<AspNetHostEngine>();
+            // Загружаем сборки библиотек
+            //_assembliesForAttaching = new List<System.Reflection.Assembly>();
+
             _cachingEnabled = (appSettings["cachingEnabled"] == "true");
             AspNetLog.Write(logWriter, "Start assemblies loading.");
-
-            LoadAssemblies(appSettings, logWriter);
-            LoadModules(appSettings, logWriter);
-            //foreach (string assemblyName in appSettings.AllKeys)
-            //{
-            //    if (appSettings[assemblyName] == "attachAssembly")
-            //    {
-            //        try
-            //        {
-            //            _assembliesForAttaching.Add(System.Reflection.Assembly.Load(assemblyName));
-            //        }
-            // TODO: Исправить - должно падать. Если конфиг сайта неработоспособен - сайт не должен быть работоспособен.
-            //        catch (Exception ex)
-            //        {
-            //            AspNetLog.Write(logWriter, "Error loading assembly: " + assemblyName + " " + ex.ToString());
-            //            if (appSettings["handlerLoadingPolicy"] == "strict")
-            //                throw; // Must fail!
-            //        }
-            //    }
-            //}
-
-
-            // Создаем пул экземпляров ядра движка
-            int workerThreads = 0;
-            int completionPortThreads = 0;
-
-            ThreadPool.GetMaxThreads(out workerThreads, out completionPortThreads);
-
-            if (appSettings["maxThreads"] != null)
-                workerThreads = Convert.ToInt32(appSettings["commonModulesPath"]);
-
-            AspNetLog.Write(logWriter, "Maximum count of threads is: " + workerThreads.ToString() + " / " + completionPortThreads.ToString());
-
             try
             {
+
+                LoadAssemblies(appSettings, logWriter);
+                LoadModules(appSettings, logWriter);
+                //foreach (string assemblyName in appSettings.AllKeys)
+                //{
+                //    if (appSettings[assemblyName] == "attachAssembly")
+                //    {
+                //        try
+                //        {
+                //            _assembliesForAttaching.Add(System.Reflection.Assembly.Load(assemblyName));
+                //        }
+                // TODO: Исправить - должно падать. Если конфиг сайта неработоспособен - сайт не должен быть работоспособен.
+                //        catch (Exception ex)
+                //        {
+                //            AspNetLog.Write(logWriter, "Error loading assembly: " + assemblyName + " " + ex.ToString());
+                //            if (appSettings["handlerLoadingPolicy"] == "strict")
+                //                throw; // Must fail!
+                //        }
+                //    }
+                //}
+
+                // Создаем пул экземпляров ядра движка
+                int workerThreads = 0;
+                int completionPortThreads = 0;
+
+                ThreadPool.GetMaxThreads(out workerThreads, out completionPortThreads);
+
+                if (appSettings["maxThreads"] != null)
+                    workerThreads = Convert.ToInt32(appSettings["commonModulesPath"]);
+
+                AspNetLog.Write(logWriter, "Maximum count of threads is: " + workerThreads.ToString() + " / " + completionPortThreads.ToString());
+
                 while (workerThreads > 0)
                 {
                     _pool.Enqueue(new AspNetHostEngine());
@@ -170,18 +170,18 @@ namespace OneScript.HTTPService
 
         public AspNetHostEngine()
         {
-            
+
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
 
             _hostedScript = new HostedScriptEngine();
-            
+
             // метод настраивает внутренние переменные у SystemGlobalContext
             _hostedScript.SetGlobalEnvironment(new NullApplicationHost(), new NullEntryScriptSrc());
             _hostedScript.Initialize();
-            
+
             // Размещаем oscript.cfg вместе с web.config. Так наверное привычнее
             _hostedScript.CustomConfig = appSettings["configFilePath"] ?? System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oscript.cfg");
-            
+
             // Аттачим доп сборки. По идее должны лежать в Bin
             foreach (System.Reflection.Assembly assembly in _assembliesForAttaching)
             {
@@ -211,7 +211,7 @@ namespace OneScript.HTTPService
                 }
             }
             */
-            foreach(System.Collections.DictionaryEntry cm in _commonModules)
+            foreach (System.Collections.DictionaryEntry cm in _commonModules)
             {
                 _hostedScript.InjectGlobalProperty((string)cm.Key, ValueFactory.Create(), true);
             }
