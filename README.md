@@ -1,8 +1,9 @@
 ﻿# OneScript-AspNetEngine
 
+Патч к http-сервисам OneScript 1.0.19, расширяющий их функционал.
+
 ## ASPNETHandler
 Реализация расширенного функционала ASPNETHandler для версии 1.0.19. 
-Является патчем к платформе.
 
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/ASPNETHandler/README.MD).
 
@@ -17,6 +18,6 @@
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/HttpMeans/README.MD)
 
 ## AspNetEngine
-Служебная библиотека, реализующая пул объектов HostedScriptEngine для выполнения фоновых заданий в отдельных потоках.
+Служебная библиотека, реализующая пул объектов HostedScriptEngine в http-сервисах для выполнения фоновых заданий в отдельных потоках.
 
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/AspNetEngine/README.MD)
