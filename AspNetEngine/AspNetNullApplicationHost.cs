@@ -15,9 +15,9 @@ namespace OneScript.HTTPService
     // Класс-заглушка для вывода Сообщить.
     // Поведение как на сервере 1С
 
-    public class NullApplicationHost : IHostApplication
+    public class AspNetNullApplicationHost : IHostApplication
     {
-        public NullApplicationHost()
+        public AspNetNullApplicationHost()
         {
 
         }

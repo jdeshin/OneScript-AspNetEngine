@@ -181,7 +181,13 @@ namespace OneScript.HTTPService
             _hostedScript = new HostedScriptEngine();
 
             // метод настраивает внутренние переменные у SystemGlobalContext
-            _hostedScript.SetGlobalEnvironment(new NullApplicationHost(), new NullEntryScriptSrc());
+            //_hostedScript.SetGlobalEnvironment(new NullApplicationHost(), new NullEntryScriptSrc());
+            // метод настраивает внутренние переменные у SystemGlobalContext
+            if (appSettings["enableEcho"] == "true")
+                _hostedScript.SetGlobalEnvironment(new ASPNetApplicationHost(), new AspEntryScriptSrc(appSettings["startupScript"] ?? HttpContext.Current.Server.MapPath("~/web.config")));
+            else
+                _hostedScript.SetGlobalEnvironment(new AspNetNullApplicationHost(), new AspNetNullEntryScriptSrc());
+
             _hostedScript.Initialize();
 
             // Размещаем oscript.cfg вместе с web.config. Так наверное привычнее

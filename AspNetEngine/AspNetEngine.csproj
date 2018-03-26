@@ -48,12 +48,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AspNetApplicationHost.cs" />
     <Compile Include="AspNetEngine.cs" />
+    <Compile Include="AspNetEntryScriptSrc.cs" />
     <Compile Include="AspNetLog.cs" />
     <Compile Include="HttpServiceRequestImpl.cs" />
     <Compile Include="HttpServiceResponseImpl.cs" />
-    <Compile Include="NullApplicationHost.cs" />
-    <Compile Include="NullEntryScriptSrc.cs" />
+    <Compile Include="AspNetNullApplicationHost.cs" />
+    <Compile Include="AspNetNullEntryScriptSrc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
