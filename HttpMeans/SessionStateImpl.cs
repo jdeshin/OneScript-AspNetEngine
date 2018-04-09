@@ -63,13 +63,23 @@ namespace OneScript.HTTPService
             return (IValue)HttpContext.Current.Session[name];
         }
 
-        [ContextMethod("Установить", "Set")]
-        public void Set(string name, IValue value)
+        [ContextMethod("Вставить", "Insert")]
+        public void Insert(string name, IValue value)
         {
             HttpContext.Current.Session[name] = (object)value;
         }
 
-        
+        [ContextMethod("Очистить", "Clear")]
+        public void Clear()
+        {
+            HttpContext.Current.Session.Clear();
+        }
+
+        [ContextMethod("Удалить", "Delete")]
+        public void Delete(string name)
+        {
+            HttpContext.Current.Session.Remove(name);
+        }
 
     }
 }
