@@ -12,6 +12,8 @@ using ScriptEngine.Machine.Contexts;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.HostedScript.Library.Binary;
 
+using System.Web;
+
 /// <summary>
 /// 
 /// </summary>
@@ -36,5 +38,38 @@ namespace OneScript.HTTPService
                 return ValueFactory.Create(_context.Session.Count);
             }
         }
+
+        [ContextProperty("ЭтоНоваяСессия", "IsNewSession")]
+        public bool IsNewSession
+        {
+            get
+            {
+                return HttpContext.Current.Session.IsNewSession;
+            }
+        }
+
+        [ContextProperty("Идентификатор", "SessionID")]
+        public string SessionID
+        {
+            get
+            {
+                return HttpContext.Current.Session.SessionID;
+            }
+        }
+
+        [ContextMethod("Получить", "Get")]
+        public IValue Get(string name)
+        {
+            return (IValue)HttpContext.Current.Session[name];
+        }
+
+        [ContextMethod("Установить", "Set")]
+        public void Set(string name, IValue value)
+        {
+            HttpContext.Current.Session[name] = (object)value;
+        }
+
+        
+
     }
 }
