@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebBackgroundJobs", "WebBac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpMeans", "HttpMeans\HttpMeans.csproj", "{6466645E-0640-44E2-8637-994029405E63}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduledTasks", "ScheduledTasks\ScheduledTasks.csproj", "{48835541-B63F-4DCF-A8AB-F1317AB4FE99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scheduledresearch", "scheduledresearch\scheduledresearch.csproj", "{7C475F92-810F-47F3-8CAE-634A571F38A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{6466645E-0640-44E2-8637-994029405E63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6466645E-0640-44E2-8637-994029405E63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6466645E-0640-44E2-8637-994029405E63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48835541-B63F-4DCF-A8AB-F1317AB4FE99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48835541-B63F-4DCF-A8AB-F1317AB4FE99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48835541-B63F-4DCF-A8AB-F1317AB4FE99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48835541-B63F-4DCF-A8AB-F1317AB4FE99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C475F92-810F-47F3-8CAE-634A571F38A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C475F92-810F-47F3-8CAE-634A571F38A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C475F92-810F-47F3-8CAE-634A571F38A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C475F92-810F-47F3-8CAE-634A571F38A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
