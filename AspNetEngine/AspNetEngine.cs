@@ -60,6 +60,7 @@ namespace OneScript.HTTPService
         static List<System.Reflection.Assembly> _assembliesForAttaching;
 
         static System.Collections.Hashtable _commonModules;
+        static System.Collections.Hashtable _dataProcessors;
 
         static AspNetHostEngine()
         {
@@ -79,6 +80,7 @@ namespace OneScript.HTTPService
 
                 LoadAssemblies(appSettings, logWriter);
                 LoadModules(appSettings, logWriter);
+                LoadDataProcessors(appSettings, logWriter);
                 //foreach (string assemblyName in appSettings.AllKeys)
                 //{
                 //    if (appSettings[assemblyName] == "attachAssembly")
@@ -172,6 +174,23 @@ namespace OneScript.HTTPService
             }
         }
 
+        static void LoadDataProcessors(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
+        {
+            _dataProcessors = new System.Collections.Hashtable();
+
+            string libPath = ConvertRelativePathToPhysical(appSettings["dataProcessorsPath"]);
+
+            if (libPath != null)
+            {
+                string[] files = System.IO.Directory.GetFiles(libPath, "*.os");
+
+                foreach (string filePathName in files)
+                {
+                    _dataProcessors.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName), System.IO.File.ReadAllText(filePathName));
+                }
+            }
+        }
+
 
         public AspNetHostEngine()
         {
@@ -222,11 +241,15 @@ namespace OneScript.HTTPService
                 }
             }
             */
+            // Добавляем свойство Обработки для обработок
+            _hostedScript.InjectGlobalProperty("Обработки", ValueFactory.Create(), true);
+            // Добавляем свойства для общих модулей
             foreach (System.Collections.DictionaryEntry cm in _commonModules)
             {
                 _hostedScript.InjectGlobalProperty((string)cm.Key, ValueFactory.Create(), true);
             }
 
+            // Подключаем общие модули
             foreach (System.Collections.DictionaryEntry cm in _commonModules)
             {
                 ICodeSource src = _hostedScript.Loader.FromString((string)cm.Value);
@@ -237,6 +260,22 @@ namespace OneScript.HTTPService
                 var instance = (IValue)_hostedScript.EngineInstance.NewObject(loaded);
                 _hostedScript.EngineInstance.Environment.SetGlobalProperty((string)cm.Key, instance);
             }
+
+            // Подключаем обработки
+            ScriptEngine.HostedScript.Library.StructureImpl dataProcessors = new ScriptEngine.HostedScript.Library.StructureImpl();
+
+            // Подключаем обработки-библиотеки
+
+            // Подключаем обработки 1С
+
+            foreach (System.Collections.DictionaryEntry cdp in _dataProcessors)
+            {
+                dataProcessors.Insert((string)cdp.Value, new DataProcessorManagerImpl(_hostedScript, (string)cdp.Value));
+            }
+
+            // Устанавливаем свойство Обработки
+            _hostedScript.EngineInstance.Environment.SetGlobalProperty("Обработки", new ScriptEngine.HostedScript.Library.FixedStructureImpl(dataProcessors));
+
         }
 
 

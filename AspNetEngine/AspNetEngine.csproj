@@ -52,6 +52,7 @@
     <Compile Include="AspNetEngine.cs" />
     <Compile Include="AspNetEntryScriptSrc.cs" />
     <Compile Include="AspNetLog.cs" />
+    <Compile Include="DataProcessorManagerImpl.cs" />
     <Compile Include="HttpServiceRequestImpl.cs" />
     <Compile Include="HttpServiceResponseImpl.cs" />
     <Compile Include="AspNetNullApplicationHost.cs" />
