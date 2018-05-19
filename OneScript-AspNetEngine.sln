@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebBackgroundJobs", "WebBac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpMeans", "HttpMeans\HttpMeans.csproj", "{6466645E-0640-44E2-8637-994029405E63}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScript.DataProcessor.Demo", "OneScript.DataProcessor.Demo\OneScript.DataProcessor.Demo.csproj", "{3CF67287-BE13-4ADB-9287-ED723B8581A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{6466645E-0640-44E2-8637-994029405E63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6466645E-0640-44E2-8637-994029405E63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6466645E-0640-44E2-8637-994029405E63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CF67287-BE13-4ADB-9287-ED723B8581A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CF67287-BE13-4ADB-9287-ED723B8581A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CF67287-BE13-4ADB-9287-ED723B8581A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CF67287-BE13-4ADB-9287-ED723B8581A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

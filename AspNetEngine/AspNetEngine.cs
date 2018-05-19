@@ -75,6 +75,7 @@ namespace OneScript.HTTPService
             try
             {
                 LoadAssemblies(appSettings, logWriter);
+                LoadModules(appSettings, logWriter);
                 System.Collections.Hashtable dataProcessorManagerFiles = GetDataProcessorManagerFiles(appSettings, logWriter);
                 System.Collections.Hashtable dataProcessorObjectFiles = GetDataProcessorObjectFiles(appSettings, logWriter);
 
@@ -208,16 +209,13 @@ namespace OneScript.HTTPService
             // Размещаем oscript.cfg вместе с web.config. Так наверное привычнее
             _hostedScript.CustomConfig = appSettings["configFilePath"] ?? System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oscript.cfg");
 
-            TextWriter wr = AspNetLog.Open();
-            AspNetLog.Write(wr, "Зааттачили сборки ");
-            AspNetLog.Close(wr);
+            
 
             // Аттачим доп сборки. По идее должны лежать в Bin
             foreach (System.Reflection.Assembly assembly in _assembliesForAttaching)
             {
-                _hostedScript.AttachAssembly(assembly);
+                    _hostedScript.AttachAssembly(assembly);
             }
-
 
             // Добавляем свойства для общих модулей
             foreach (System.Collections.DictionaryEntry cm in _commonModules)
@@ -225,12 +223,9 @@ namespace OneScript.HTTPService
                 _hostedScript.InjectGlobalProperty((string)cm.Key, ValueFactory.Create(), true);
             }
 
-
-            // Добавляем свойство Обработки для обработок
-
-
+            // Добавляем свойства для обработок
             _hostedScript.InjectGlobalProperty("Обработки", ValueFactory.Create(), true);
-            _hostedScript.InjectGlobalProperty("ОбработкиМенеджер", ValueFactory.Create(), true);
+            _hostedScript.InjectGlobalProperty("ОбработкаМенеджерФункцииПлатформы", ValueFactory.Create(), true);
 
             // Подключаем общие модули
             foreach (System.Collections.DictionaryEntry cm in _commonModules)
@@ -245,14 +240,7 @@ namespace OneScript.HTTPService
             }
 
             // Подключаем обработки
-
-            if (dataProcessorManagerFiles == null)
-                AspNetLog.Write(wr, "managerFiles is null");
-            if (dataProcessorObjectFiles == null)
-                AspNetLog.Write(wr, "managerFiles is null");
-            AspNetLog.Close(wr);
-
-            _hostedScript.EngineInstance.Environment.SetGlobalProperty("ОбработкиМенеджер", new DataProcessorsManagerImpl(_hostedScript, dataProcessorManagerFiles, dataProcessorObjectFiles));
+            _hostedScript.EngineInstance.Environment.SetGlobalProperty("ОбработкаМенеджерФункцииПлатформы", new DataProcessorsManagerImpl(_hostedScript, dataProcessorManagerFiles, dataProcessorObjectFiles));
 
             // Подключаем обработки-библиотеки
             // Для будующих расширений

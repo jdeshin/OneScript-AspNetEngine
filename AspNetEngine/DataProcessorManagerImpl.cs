@@ -15,7 +15,7 @@ using ScriptEngine.HostedScript;
 
 namespace OneScript.HTTPService
 {
-    [ContextClass("ОбработкиМенеджерСлужебный", "DataProcessorsManagerService")]
+    [ContextClass("_ОбработкаМенеджерФункцииПлатформы", "_DataProcessorManagerPlatformFunction")]
     public class DataProcessorsManagerImpl : AutoContext<DataProcessorsManagerImpl>
     {
         HostedScriptEngine _hostedScript;
@@ -37,7 +37,7 @@ namespace OneScript.HTTPService
                 _dataProcessorObjectModules.Add(co.Key, _loaded);
             }
 
-
+            AddDataProcessorManagers(managerFiles);
         }
 
         [ContextMethod("Создать", "Create")]
@@ -48,13 +48,13 @@ namespace OneScript.HTTPService
             return (IValue)_hostedScript.EngineInstance.NewObject((LoadedModuleHandle)_dataProcessorObjectModules[name]);
         }
 
-        public const string MandatoryMethodsText = 
-            @" // 
-               Функция Создать() Экспорт
-                   ОбработкиМенеджер.Создать(""{{DataProcessorName}}"");
-               КонецФункции
-               //
-             ";
+        public const string MandatoryMethodsText =
+@"// 
+Функция Создать() Экспорт
+    Возврат ОбработкаМенеджерФункцииПлатформы.Создать(""{{DataProcessorName}}"");
+КонецФункции
+//
+";
 
         public string InsertMandatoryMethods(string managerModuleText, string name)
         {
@@ -64,7 +64,7 @@ namespace OneScript.HTTPService
         public void AddDataProcessorManagers(System.Collections.Hashtable managerFiles)
         {
             ScriptEngine.HostedScript.Library.StructureImpl dataProcessors = new ScriptEngine.HostedScript.Library.StructureImpl();
-
+            // Добавляем обработки, написанные на OneScript
             foreach (System.Collections.DictionaryEntry cm in managerFiles)
             {
                 ICodeSource src = _hostedScript.Loader.FromString( InsertMandatoryMethods((string)cm.Value, (string)cm.Key) );
@@ -73,10 +73,48 @@ namespace OneScript.HTTPService
                 var _loaded = _hostedScript.EngineInstance.LoadModuleImage(module);
                 dataProcessors.Insert((string)cm.Key, (IValue)_hostedScript.EngineInstance.NewObject(_loaded));
             }
-
+            // Добавляем библиотеки как обработки
+            AddLibrariesAsDataProcessors(dataProcessors);
             _hostedScript.EngineInstance.Environment.SetGlobalProperty("Обработки", new ScriptEngine.HostedScript.Library.FixedStructureImpl(dataProcessors));
 
         }
 
+        void AddLibrariesAsDataProcessors(ScriptEngine.HostedScript.Library.StructureImpl dataProcessors)
+        {
+            System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
+
+            foreach (string typeInfo in appSettings.AllKeys)
+            {
+                if (appSettings[typeInfo] == "attachAsDataProcessor")
+                {
+                    // Запись должна быть вида <key="ИмяСборки;ИмяТипа;[ИмяОбработки]"
+                    // Если пункта ИмяОбработки нет - получаем из атрибута класса
+                    string[] dataProcessorInfo = typeInfo.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    if (dataProcessorInfo.Length < 2)
+                        continue;
+
+                    string typeName = dataProcessorInfo[1].Trim();
+                    string dataProcessorName = "";
+                    string assemblyName = dataProcessorInfo[0].Trim();
+                    object instance = Activator.CreateInstance(assemblyName, typeName).Unwrap();
+
+                    if (dataProcessorInfo.Length == 2)
+                    {
+                        ContextClassAttribute attribute = instance.GetType().GetCustomAttributes(typeof(ContextClassAttribute), false).FirstOrDefault() as ContextClassAttribute;
+
+                        if (attribute != null)
+                            dataProcessorName = attribute.GetName();
+                        else
+                            continue;
+                    }
+                    else
+                        dataProcessorName = dataProcessorInfo[2].Trim();
+
+                    dataProcessors.Insert(dataProcessorName, (IValue)instance);
+                }
+            }
+        }
     }
+
 }
