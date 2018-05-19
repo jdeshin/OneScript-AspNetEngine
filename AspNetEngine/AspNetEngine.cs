@@ -58,9 +58,7 @@ namespace OneScript.HTTPService
         // web.config -> <appSettings> -> <add key="ASPNetHandler" value="attachAssembly"/> Сделано так для простоты. Меньше настроек - дольше жизнь :)
         // не нужен наверное
         static List<System.Reflection.Assembly> _assembliesForAttaching;
-
         static System.Collections.Hashtable _commonModules;
-        static System.Collections.Hashtable _dataProcessors;
 
         static AspNetHostEngine()
         {
@@ -71,33 +69,14 @@ namespace OneScript.HTTPService
 
             _pool = new System.Collections.Concurrent.ConcurrentQueue<AspNetHostEngine>();
             // Загружаем сборки библиотек
-            //_assembliesForAttaching = new List<System.Reflection.Assembly>();
 
             _cachingEnabled = (appSettings["cachingEnabled"] == "true");
             AspNetLog.Write(logWriter, "Start assemblies loading.");
             try
             {
-
                 LoadAssemblies(appSettings, logWriter);
-                LoadModules(appSettings, logWriter);
-                LoadDataProcessors(appSettings, logWriter);
-                //foreach (string assemblyName in appSettings.AllKeys)
-                //{
-                //    if (appSettings[assemblyName] == "attachAssembly")
-                //    {
-                //        try
-                //        {
-                //            _assembliesForAttaching.Add(System.Reflection.Assembly.Load(assemblyName));
-                //        }
-                // TODO: Исправить - должно падать. Если конфиг сайта неработоспособен - сайт не должен быть работоспособен.
-                //        catch (Exception ex)
-                //        {
-                //            AspNetLog.Write(logWriter, "Error loading assembly: " + assemblyName + " " + ex.ToString());
-                //            if (appSettings["handlerLoadingPolicy"] == "strict")
-                //                throw; // Must fail!
-                //        }
-                //    }
-                //}
+                System.Collections.Hashtable dataProcessorManagerFiles = GetDataProcessorManagerFiles(appSettings, logWriter);
+                System.Collections.Hashtable dataProcessorObjectFiles = GetDataProcessorObjectFiles(appSettings, logWriter);
 
                 // Создаем пул экземпляров ядра движка
                 int workerThreads = 0;
@@ -117,7 +96,7 @@ namespace OneScript.HTTPService
 
                 while (enginesCount > 0)
                 {
-                    _pool.Enqueue(new AspNetHostEngine());
+                    _pool.Enqueue(new AspNetHostEngine(dataProcessorManagerFiles, dataProcessorObjectFiles));
                     enginesCount--;
                 }
             }
@@ -174,33 +153,50 @@ namespace OneScript.HTTPService
             }
         }
 
-        static void LoadDataProcessors(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
+        static System.Collections.Hashtable GetDataProcessorManagerFiles(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
         {
-            _dataProcessors = new System.Collections.Hashtable();
+            System.Collections.Hashtable managerModules = new System.Collections.Hashtable();
 
             string libPath = ConvertRelativePathToPhysical(appSettings["dataProcessorsPath"]);
 
             if (libPath != null)
             {
-                string[] files = System.IO.Directory.GetFiles(libPath, "*.os");
+                string [] files = System.IO.Directory.GetFiles(libPath, "*.ManagerModule.os");
 
                 foreach (string filePathName in files)
                 {
-                    _dataProcessors.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName), System.IO.File.ReadAllText(filePathName));
+                    managerModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName).Replace(".ManagerModule", ""), System.IO.File.ReadAllText(filePathName));
                 }
             }
+
+            return managerModules;
         }
 
-
-        public AspNetHostEngine()
+        static System.Collections.Hashtable GetDataProcessorObjectFiles(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
         {
+            System.Collections.Hashtable managerModules = new System.Collections.Hashtable();
 
+            string libPath = ConvertRelativePathToPhysical(appSettings["dataProcessorsPath"]);
+
+            if (libPath != null)
+            {
+                string[] files = System.IO.Directory.GetFiles(libPath, "*.ObjectModule.os");
+
+                foreach (string filePathName in files)
+                {
+                    managerModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName).Replace(".ObjectModule", ""), System.IO.File.ReadAllText(filePathName));
+                }
+            }
+
+            return managerModules;
+        }
+
+        public AspNetHostEngine(System.Collections.Hashtable dataProcessorManagerFiles, System.Collections.Hashtable dataProcessorObjectFiles)
+        {
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
 
             _hostedScript = new HostedScriptEngine();
 
-            // метод настраивает внутренние переменные у SystemGlobalContext
-            //_hostedScript.SetGlobalEnvironment(new NullApplicationHost(), new NullEntryScriptSrc());
             // метод настраивает внутренние переменные у SystemGlobalContext
             if (appSettings["enableEcho"] == "true")
                 _hostedScript.SetGlobalEnvironment(new ASPNetApplicationHost(), new AspEntryScriptSrc(appSettings["startupScript"] ?? HttpContext.Current.Server.MapPath("~/web.config")));
@@ -212,42 +208,29 @@ namespace OneScript.HTTPService
             // Размещаем oscript.cfg вместе с web.config. Так наверное привычнее
             _hostedScript.CustomConfig = appSettings["configFilePath"] ?? System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oscript.cfg");
 
+            TextWriter wr = AspNetLog.Open();
+            AspNetLog.Write(wr, "Зааттачили сборки ");
+            AspNetLog.Close(wr);
+
             // Аттачим доп сборки. По идее должны лежать в Bin
             foreach (System.Reflection.Assembly assembly in _assembliesForAttaching)
             {
                 _hostedScript.AttachAssembly(assembly);
             }
 
-            //Загружаем библиотечные скрипты aka общие модули
-            /*
-            string libPath = ConvertRelativePathToPhysical(appSettings["commonModulesPath"]);
-            if (libPath != null)
-            {
-                string[] files = System.IO.Directory.GetFiles(libPath, "*.os");
-                foreach (string filePathName in files)
-                {
-                    _hostedScript.InjectGlobalProperty(System.IO.Path.GetFileNameWithoutExtension(filePathName), ValueFactory.Create(), true);
-                }
 
-                foreach (string filePathName in files)
-                {
-                    ICodeSource src = _hostedScript.Loader.FromFile(filePathName);
-                    
-                    var compilerService = _hostedScript.GetCompilerService();
-                    var module = compilerService.CreateModule(src);
-                    var loaded = _hostedScript.EngineInstance.LoadModuleImage(module);
-                    var instance = (IValue)_hostedScript.EngineInstance.NewObject(loaded);
-                    _hostedScript.EngineInstance.Environment.SetGlobalProperty(System.IO.Path.GetFileNameWithoutExtension(filePathName), instance);
-                }
-            }
-            */
-            // Добавляем свойство Обработки для обработок
-            _hostedScript.InjectGlobalProperty("Обработки", ValueFactory.Create(), true);
             // Добавляем свойства для общих модулей
             foreach (System.Collections.DictionaryEntry cm in _commonModules)
             {
                 _hostedScript.InjectGlobalProperty((string)cm.Key, ValueFactory.Create(), true);
             }
+
+
+            // Добавляем свойство Обработки для обработок
+
+
+            _hostedScript.InjectGlobalProperty("Обработки", ValueFactory.Create(), true);
+            _hostedScript.InjectGlobalProperty("ОбработкиМенеджер", ValueFactory.Create(), true);
 
             // Подключаем общие модули
             foreach (System.Collections.DictionaryEntry cm in _commonModules)
@@ -262,20 +245,17 @@ namespace OneScript.HTTPService
             }
 
             // Подключаем обработки
-            ScriptEngine.HostedScript.Library.StructureImpl dataProcessors = new ScriptEngine.HostedScript.Library.StructureImpl();
+
+            if (dataProcessorManagerFiles == null)
+                AspNetLog.Write(wr, "managerFiles is null");
+            if (dataProcessorObjectFiles == null)
+                AspNetLog.Write(wr, "managerFiles is null");
+            AspNetLog.Close(wr);
+
+            _hostedScript.EngineInstance.Environment.SetGlobalProperty("ОбработкиМенеджер", new DataProcessorsManagerImpl(_hostedScript, dataProcessorManagerFiles, dataProcessorObjectFiles));
 
             // Подключаем обработки-библиотеки
-
-            // Подключаем обработки 1С
-
-            foreach (System.Collections.DictionaryEntry cdp in _dataProcessors)
-            {
-                dataProcessors.Insert((string)cdp.Value, new DataProcessorManagerImpl(_hostedScript, (string)cdp.Value));
-            }
-
-            // Устанавливаем свойство Обработки
-            _hostedScript.EngineInstance.Environment.SetGlobalProperty("Обработки", new ScriptEngine.HostedScript.Library.FixedStructureImpl(dataProcessors));
-
+            // Для будующих расширений
         }
 
 
