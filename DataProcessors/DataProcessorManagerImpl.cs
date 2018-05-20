@@ -15,7 +15,7 @@ using ScriptEngine.HostedScript;
 
 namespace OneScript.HTTPService
 {
-    [ContextClass("_ОбработкаМенеджерФункцииПлатформы", "_DataProcessorManagerPlatformFunction")]
+    [ContextClass("ОбработкаМенеджерБазовый", "DataProcessorManagerBase")]
     public class DataProcessorsManagerImpl : AutoContext<DataProcessorsManagerImpl>
     {
         HostedScriptEngine _hostedScript;
@@ -44,14 +44,13 @@ namespace OneScript.HTTPService
         public IValue Create(string name)
         {
             // Создаем объект из модуля объекта
-            
             return (IValue)_hostedScript.EngineInstance.NewObject((LoadedModuleHandle)_dataProcessorObjectModules[name]);
         }
 
         public const string MandatoryMethodsText =
 @"// 
 Функция Создать() Экспорт
-    Возврат ОбработкаМенеджерФункцииПлатформы.Создать(""{{DataProcessorName}}"");
+    Возврат ОбработкаМенеджерБазовый.Создать(""{{DataProcessorName}}"");
 КонецФункции
 //
 Функция ПолучитьМакет(Макет) Экспорт
@@ -71,7 +70,7 @@ namespace OneScript.HTTPService
             // Добавляем обработки, написанные на OneScript
             foreach (System.Collections.DictionaryEntry cm in managerFiles)
             {
-                ICodeSource src = _hostedScript.Loader.FromString( InsertMandatoryMethods((string)cm.Value, (string)cm.Key) );
+                ICodeSource src = _hostedScript.Loader.FromString(InsertMandatoryMethods((string)cm.Value, (string)cm.Key));
                 var compilerService = _hostedScript.GetCompilerService();
                 var module = compilerService.CreateModule(src);
                 var _loaded = _hostedScript.EngineInstance.LoadModuleImage(module);

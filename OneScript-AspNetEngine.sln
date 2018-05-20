@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpMeans", "HttpMeans\Http
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScript.DataProcessor.Demo", "OneScript.DataProcessor.Demo\OneScript.DataProcessor.Demo.csproj", "{3CF67287-BE13-4ADB-9287-ED723B8581A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibraryAsPropertiesLoader", "LibraryAsPropertiesLoader\LibraryAsPropertiesLoader.csproj", "{A3F7E191-6F13-4754-980B-458345BA1A08}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataProcessors", "DataProcessors\DataProcessors.csproj", "{158C2528-F10C-4042-90F0-F3C034CFAD8D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{3CF67287-BE13-4ADB-9287-ED723B8581A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CF67287-BE13-4ADB-9287-ED723B8581A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CF67287-BE13-4ADB-9287-ED723B8581A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3F7E191-6F13-4754-980B-458345BA1A08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3F7E191-6F13-4754-980B-458345BA1A08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3F7E191-6F13-4754-980B-458345BA1A08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3F7E191-6F13-4754-980B-458345BA1A08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{158C2528-F10C-4042-90F0-F3C034CFAD8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{158C2528-F10C-4042-90F0-F3C034CFAD8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{158C2528-F10C-4042-90F0-F3C034CFAD8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{158C2528-F10C-4042-90F0-F3C034CFAD8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

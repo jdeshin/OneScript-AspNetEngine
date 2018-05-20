@@ -16,6 +16,7 @@ using ScriptEngine.HostedScript;
 
 using System.Runtime.CompilerServices;
 
+
 namespace OneScript.HTTPService
 {
     public class AspNetHostEngine
@@ -69,8 +70,7 @@ namespace OneScript.HTTPService
             {
                 List<System.Reflection.Assembly> assembliesForAttaching = GetAssembliesForAttaching(appSettings, logWriter);
                 System.Collections.Hashtable commonModulesForLoading = GetCommonModulesForLoading(appSettings, logWriter);
-                System.Collections.Hashtable dataProcessorManagerModules = GetDataProcessorManagerModules(appSettings, logWriter);
-                System.Collections.Hashtable dataProcessorObjectModules = GetDataProcessorObjectModules(appSettings, logWriter);
+                List<PropertiesInjectorInfo> propertiesInjectorsInfo = GetPropertiesInjectors(appSettings, logWriter);
 
                 // Создаем пул экземпляров ядра движка
                 int workerThreads = 0;
@@ -90,7 +90,7 @@ namespace OneScript.HTTPService
 
                 while (enginesCount > 0)
                 {
-                    _pool.Enqueue(new AspNetHostEngine(assembliesForAttaching, commonModulesForLoading, dataProcessorManagerModules, dataProcessorObjectModules));
+                    _pool.Enqueue(new AspNetHostEngine(assembliesForAttaching, propertiesInjectorsInfo, commonModulesForLoading));
                     enginesCount--;
                 }
             }
@@ -131,6 +131,36 @@ namespace OneScript.HTTPService
             return assembliesForAttaching;
         }
 
+        // Возвращает список объектов PropertiesInjector, которые содержат информацию о библиотеке, которая вставляет свойства в HostEngine
+        // Сборка должна быть загружена с использованием attachAssembly
+        //
+        static List<PropertiesInjectorInfo> GetPropertiesInjectors(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
+        {
+            List<PropertiesInjectorInfo> propertiesInjectors = new List<PropertiesInjectorInfo>();
+
+            // Пробегаем по всем ключам appSettings
+            foreach (string assemblyInfo in appSettings.AllKeys)
+            {
+                // name="propertiesInjector;ИмяСборки;ИмяКласса"
+                string[] strInjectorInfo = assemblyInfo.Replace(" ", "").Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (strInjectorInfo.Length < 3)
+                    continue;
+
+                if (strInjectorInfo[0] != "propertiesInjector")
+                    continue;
+
+                PropertiesInjectorInfo injectorInfo = new PropertiesInjectorInfo();
+                injectorInfo.AssemblyName = strInjectorInfo[1];
+                injectorInfo.ClassName = strInjectorInfo[2];
+                injectorInfo.Info = appSettings[assemblyInfo];
+
+                propertiesInjectors.Add(injectorInfo);
+            }
+
+            return propertiesInjectors;
+        }
+
         static System.Collections.Hashtable GetCommonModulesForLoading(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
         {
             System.Collections.Hashtable commonModules = new System.Collections.Hashtable();
@@ -150,49 +180,10 @@ namespace OneScript.HTTPService
             return commonModules;
         }
 
-        static System.Collections.Hashtable GetDataProcessorManagerModules(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
-        {
-            System.Collections.Hashtable managerModules = new System.Collections.Hashtable();
-
-            string libPath = ConvertRelativePathToPhysical(appSettings["dataProcessorsPath"]);
-
-            if (libPath != null)
-            {
-                string [] files = System.IO.Directory.GetFiles(libPath, "*.МодульМенеджера.os");
-
-                foreach (string filePathName in files)
-                {
-                    managerModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName).Replace(".МодульМенеджера", ""), System.IO.File.ReadAllText(filePathName));
-                }
-            }
-
-            return managerModules;
-        }
-
-        static System.Collections.Hashtable GetDataProcessorObjectModules(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
-        {
-            System.Collections.Hashtable managerModules = new System.Collections.Hashtable();
-
-            string libPath = ConvertRelativePathToPhysical(appSettings["dataProcessorsPath"]);
-
-            if (libPath != null)
-            {
-                string[] files = System.IO.Directory.GetFiles(libPath, "*.МодульОбъекта.os");
-
-                foreach (string filePathName in files)
-                {
-                    managerModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName).Replace(".МодульОбъекта", ""), System.IO.File.ReadAllText(filePathName));
-                }
-            }
-
-            return managerModules;
-        }
-
         public AspNetHostEngine(
-            List<System.Reflection.Assembly> assembliesForAttaching, 
-            System.Collections.Hashtable commonModulesForLoading,
-            System.Collections.Hashtable dataProcessorManagerModules,
-            System.Collections.Hashtable dataProcessorObjectModules
+            List<System.Reflection.Assembly> assembliesForAttaching,
+            List<PropertiesInjectorInfo> propertiesInjectorsInfo,
+            System.Collections.Hashtable commonModulesForLoading
             )
         {
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
@@ -210,8 +201,6 @@ namespace OneScript.HTTPService
             // Размещаем oscript.cfg вместе с web.config. Так наверное привычнее
             _hostedScript.CustomConfig = appSettings["configFilePath"] ?? System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "oscript.cfg");
 
-            
-
             // Аттачим доп сборки. По идее должны лежать в Bin
             foreach (System.Reflection.Assembly assembly in assembliesForAttaching)
             {
@@ -224,9 +213,22 @@ namespace OneScript.HTTPService
                 _hostedScript.InjectGlobalProperty((string)cm.Key, ValueFactory.Create(), true);
             }
 
-            // Добавляем свойства для обработок
-            _hostedScript.InjectGlobalProperty("Обработки", ValueFactory.Create(), true);
-            _hostedScript.InjectGlobalProperty("ОбработкаМенеджерФункцииПлатформы", ValueFactory.Create(), true);
+            // Загружаем классы инжекторов свойств
+            List<PropertiesInjector> propertiesInjectors = new List<PropertiesInjector>();
+            
+            foreach(PropertiesInjectorInfo ci in propertiesInjectorsInfo)
+            {
+                ILibraryAsPropertiesLoader instance = (ILibraryAsPropertiesLoader)Activator.CreateInstance(ci.AssemblyName, ci.ClassName).Unwrap();
+                propertiesInjectors.Add(new PropertiesInjector(instance, ci.Info));
+            }
+
+            // Получаем и вставляем списки свойств. Класс инжектора должен иметь метод GetPropertyNamesForInjecting
+            foreach(PropertiesInjector injector in propertiesInjectors)
+            {
+                List<string> propertiesNames = injector.Loader.GetPropertiesNamesForInjecting(injector.Info);
+                foreach(string cp in propertiesNames)
+                    _hostedScript.InjectGlobalProperty(cp, ValueFactory.Create(), true);
+            }
 
             // Подключаем общие модули
             foreach (System.Collections.DictionaryEntry cm in commonModulesForLoading)
@@ -240,8 +242,9 @@ namespace OneScript.HTTPService
                 _hostedScript.EngineInstance.Environment.SetGlobalProperty((string)cm.Key, instance);
             }
 
-            // Подключаем обработки
-            _hostedScript.EngineInstance.Environment.SetGlobalProperty("ОбработкаМенеджерФункцииПлатформы", new DataProcessorsManagerImpl(_hostedScript, dataProcessorManagerModules, dataProcessorObjectModules));
+            // Присваиваем значения свойств
+            foreach (ILibraryAsPropertiesLoader injector in propertiesInjectors)
+                injector.AssignPropertiesValues(_hostedScript);
         }
 
         public void CallCommonModuleProcedure(string moduleName, string methodName, IValue[] parameters)
@@ -287,7 +290,48 @@ namespace OneScript.HTTPService
             relPath = relPath.Replace("/", System.IO.Path.DirectorySeparatorChar.ToString());
             return System.IO.Path.Combine(baseDir, relPath);
         }
+    }
 
+    public class PropertiesInjectorInfo
+    {
+        public string AssemblyName
+        {
+            get;
+            set;
+        }
+
+        public string ClassName
+        {
+            get;
+            set;
+        }
+
+        public string Info
+        {
+            get;
+            set;
+        }
+    }
+
+    public class PropertiesInjector
+    {
+        public ILibraryAsPropertiesLoader Loader
+        {
+            get;
+            set;
+        }
+
+        public string Info
+        {
+            get;
+            set;
+        }
+
+        public PropertiesInjector(ILibraryAsPropertiesLoader loader, string info)
+        {
+            Loader = loader;
+            Info = info;
+        }
     }
 }
 

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9017AB7C-E605-4EA8-9E38-CB745231657C}</ProjectGuid>
+    <ProjectGuid>{A3F7E191-6F13-4754-980B-458345BA1A08}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AspNetEngine</RootNamespace>
-    <AssemblyName>AspNetEngine</AssemblyName>
+    <RootNamespace>LibraryAsPropertiesLoader</RootNamespace>
+    <AssemblyName>LibraryAsPropertiesLoader</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,15 +31,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ScriptEngine">
-      <HintPath>OneScript\ScriptEngine.dll</HintPath>
+      <HintPath>..\AspNetEngine\OneScript\ScriptEngine.dll</HintPath>
     </Reference>
     <Reference Include="ScriptEngine.HostedScript">
-      <HintPath>OneScript\ScriptEngine.HostedScript.dll</HintPath>
+      <HintPath>..\AspNetEngine\OneScript\ScriptEngine.HostedScript.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Caching" />
-    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,25 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AspNetApplicationHost.cs" />
-    <Compile Include="AspNetEngine.cs" />
-    <Compile Include="AspNetEntryScriptSrc.cs" />
-    <Compile Include="AspNetLog.cs" />
-    <Compile Include="HttpServiceRequestImpl.cs" />
-    <Compile Include="HttpServiceResponseImpl.cs" />
-    <Compile Include="AspNetNullApplicationHost.cs" />
-    <Compile Include="AspNetNullEntryScriptSrc.cs" />
+    <Compile Include="ILibraryAsPropertiesLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="OneScript\README.MD" />
-    <None Include="README.MD" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LibraryAsPropertiesLoader\LibraryAsPropertiesLoader.csproj">
-      <Project>{a3f7e191-6f13-4754-980b-458345ba1a08}</Project>
-      <Name>LibraryAsPropertiesLoader</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
