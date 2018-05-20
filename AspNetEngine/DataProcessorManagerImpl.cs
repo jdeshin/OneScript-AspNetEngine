@@ -54,6 +54,10 @@ namespace OneScript.HTTPService
     Возврат ОбработкаМенеджерФункцииПлатформы.Создать(""{{DataProcessorName}}"");
 КонецФункции
 //
+Функция ПолучитьМакет(Макет) Экспорт
+    Возврат Неопределено;
+КонецФункции
+//
 ";
 
         public string InsertMandatoryMethods(string managerModuleText, string name)

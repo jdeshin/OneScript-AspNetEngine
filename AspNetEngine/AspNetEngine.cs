@@ -54,15 +54,8 @@ namespace OneScript.HTTPService
             }
         }
 
-        // Список дополнительных сборок, которые надо приаттачить к движку. Могут быть разные расширения
-        // web.config -> <appSettings> -> <add key="ASPNetHandler" value="attachAssembly"/> Сделано так для простоты. Меньше настроек - дольше жизнь :)
-        // не нужен наверное
-        static List<System.Reflection.Assembly> _assembliesForAttaching;
-        static System.Collections.Hashtable _commonModules;
-
         static AspNetHostEngine()
         {
-
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
 
             TextWriter logWriter = AspNetLog.Open(appSettings);
@@ -74,10 +67,10 @@ namespace OneScript.HTTPService
             AspNetLog.Write(logWriter, "Start assemblies loading.");
             try
             {
-                LoadAssemblies(appSettings, logWriter);
-                LoadModules(appSettings, logWriter);
-                System.Collections.Hashtable dataProcessorManagerFiles = GetDataProcessorManagerFiles(appSettings, logWriter);
-                System.Collections.Hashtable dataProcessorObjectFiles = GetDataProcessorObjectFiles(appSettings, logWriter);
+                List<System.Reflection.Assembly> assembliesForAttaching = GetAssembliesForAttaching(appSettings, logWriter);
+                System.Collections.Hashtable commonModulesForLoading = GetCommonModulesForLoading(appSettings, logWriter);
+                System.Collections.Hashtable dataProcessorManagerModules = GetDataProcessorManagerModules(appSettings, logWriter);
+                System.Collections.Hashtable dataProcessorObjectModules = GetDataProcessorObjectModules(appSettings, logWriter);
 
                 // Создаем пул экземпляров ядра движка
                 int workerThreads = 0;
@@ -97,7 +90,7 @@ namespace OneScript.HTTPService
 
                 while (enginesCount > 0)
                 {
-                    _pool.Enqueue(new AspNetHostEngine(dataProcessorManagerFiles, dataProcessorObjectFiles));
+                    _pool.Enqueue(new AspNetHostEngine(assembliesForAttaching, commonModulesForLoading, dataProcessorManagerModules, dataProcessorObjectModules));
                     enginesCount--;
                 }
             }
@@ -109,9 +102,9 @@ namespace OneScript.HTTPService
             AspNetLog.Close(logWriter);
         }
 
-        static void LoadAssemblies(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
+        static List<System.Reflection.Assembly> GetAssembliesForAttaching(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
         {
-            _assembliesForAttaching = new List<System.Reflection.Assembly>();
+            List<System.Reflection.Assembly> assembliesForAttaching = new List<System.Reflection.Assembly>();
 
             foreach (string assemblyName in appSettings.AllKeys)
             {
@@ -119,7 +112,7 @@ namespace OneScript.HTTPService
                 {
                     try
                     {
-                        _assembliesForAttaching.Add(System.Reflection.Assembly.Load(assemblyName));
+                        assembliesForAttaching.Add(System.Reflection.Assembly.Load(assemblyName));
                         AspNetLog.Write(logWriter, "loading: " + assemblyName);
                     }
                     // TODO: Исправить - должно падать. Если конфиг сайта неработоспособен - сайт не должен быть работоспособен.
@@ -134,12 +127,13 @@ namespace OneScript.HTTPService
 
             // Добавляем текущую сборку т.к. она содержит типы HTTPServiceRequest, HTTPServiceResponse
             //
-            _assembliesForAttaching.Add(System.Reflection.Assembly.GetExecutingAssembly());
-
+            assembliesForAttaching.Add(System.Reflection.Assembly.GetExecutingAssembly());
+            return assembliesForAttaching;
         }
-        static void LoadModules(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
+
+        static System.Collections.Hashtable GetCommonModulesForLoading(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
         {
-            _commonModules = new System.Collections.Hashtable();
+            System.Collections.Hashtable commonModules = new System.Collections.Hashtable();
 
             string libPath = ConvertRelativePathToPhysical(appSettings["commonModulesPath"]);
 
@@ -149,12 +143,14 @@ namespace OneScript.HTTPService
 
                 foreach (string filePathName in files)
                 {
-                    _commonModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName), System.IO.File.ReadAllText(filePathName));
+                    commonModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName), System.IO.File.ReadAllText(filePathName));
                 }
             }
+
+            return commonModules;
         }
 
-        static System.Collections.Hashtable GetDataProcessorManagerFiles(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
+        static System.Collections.Hashtable GetDataProcessorManagerModules(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
         {
             System.Collections.Hashtable managerModules = new System.Collections.Hashtable();
 
@@ -162,18 +158,18 @@ namespace OneScript.HTTPService
 
             if (libPath != null)
             {
-                string [] files = System.IO.Directory.GetFiles(libPath, "*.ManagerModule.os");
+                string [] files = System.IO.Directory.GetFiles(libPath, "*.МодульМенеджера.os");
 
                 foreach (string filePathName in files)
                 {
-                    managerModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName).Replace(".ManagerModule", ""), System.IO.File.ReadAllText(filePathName));
+                    managerModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName).Replace(".МодульМенеджера", ""), System.IO.File.ReadAllText(filePathName));
                 }
             }
 
             return managerModules;
         }
 
-        static System.Collections.Hashtable GetDataProcessorObjectFiles(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
+        static System.Collections.Hashtable GetDataProcessorObjectModules(System.Collections.Specialized.NameValueCollection appSettings, TextWriter logWriter)
         {
             System.Collections.Hashtable managerModules = new System.Collections.Hashtable();
 
@@ -181,18 +177,23 @@ namespace OneScript.HTTPService
 
             if (libPath != null)
             {
-                string[] files = System.IO.Directory.GetFiles(libPath, "*.ObjectModule.os");
+                string[] files = System.IO.Directory.GetFiles(libPath, "*.МодульОбъекта.os");
 
                 foreach (string filePathName in files)
                 {
-                    managerModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName).Replace(".ObjectModule", ""), System.IO.File.ReadAllText(filePathName));
+                    managerModules.Add(System.IO.Path.GetFileNameWithoutExtension(filePathName).Replace(".МодульОбъекта", ""), System.IO.File.ReadAllText(filePathName));
                 }
             }
 
             return managerModules;
         }
 
-        public AspNetHostEngine(System.Collections.Hashtable dataProcessorManagerFiles, System.Collections.Hashtable dataProcessorObjectFiles)
+        public AspNetHostEngine(
+            List<System.Reflection.Assembly> assembliesForAttaching, 
+            System.Collections.Hashtable commonModulesForLoading,
+            System.Collections.Hashtable dataProcessorManagerModules,
+            System.Collections.Hashtable dataProcessorObjectModules
+            )
         {
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
 
@@ -212,13 +213,13 @@ namespace OneScript.HTTPService
             
 
             // Аттачим доп сборки. По идее должны лежать в Bin
-            foreach (System.Reflection.Assembly assembly in _assembliesForAttaching)
+            foreach (System.Reflection.Assembly assembly in assembliesForAttaching)
             {
                     _hostedScript.AttachAssembly(assembly);
             }
 
             // Добавляем свойства для общих модулей
-            foreach (System.Collections.DictionaryEntry cm in _commonModules)
+            foreach (System.Collections.DictionaryEntry cm in commonModulesForLoading)
             {
                 _hostedScript.InjectGlobalProperty((string)cm.Key, ValueFactory.Create(), true);
             }
@@ -228,7 +229,7 @@ namespace OneScript.HTTPService
             _hostedScript.InjectGlobalProperty("ОбработкаМенеджерФункцииПлатформы", ValueFactory.Create(), true);
 
             // Подключаем общие модули
-            foreach (System.Collections.DictionaryEntry cm in _commonModules)
+            foreach (System.Collections.DictionaryEntry cm in commonModulesForLoading)
             {
                 ICodeSource src = _hostedScript.Loader.FromString((string)cm.Value);
 
@@ -240,12 +241,8 @@ namespace OneScript.HTTPService
             }
 
             // Подключаем обработки
-            _hostedScript.EngineInstance.Environment.SetGlobalProperty("ОбработкаМенеджерФункцииПлатформы", new DataProcessorsManagerImpl(_hostedScript, dataProcessorManagerFiles, dataProcessorObjectFiles));
-
-            // Подключаем обработки-библиотеки
-            // Для будующих расширений
+            _hostedScript.EngineInstance.Environment.SetGlobalProperty("ОбработкаМенеджерФункцииПлатформы", new DataProcessorsManagerImpl(_hostedScript, dataProcessorManagerModules, dataProcessorObjectModules));
         }
-
 
         public void CallCommonModuleProcedure(string moduleName, string methodName, IValue[] parameters)
         {
