@@ -215,11 +215,10 @@ namespace OneScript.HTTPService
 
             // Загружаем классы инжекторов свойств
             List<PropertiesInjector> propertiesInjectors = new List<PropertiesInjector>();
-            
             foreach(PropertiesInjectorInfo ci in propertiesInjectorsInfo)
             {
-                ILibraryAsPropertiesLoader instance = (ILibraryAsPropertiesLoader)Activator.CreateInstance(ci.AssemblyName, ci.ClassName).Unwrap();
-                propertiesInjectors.Add(new PropertiesInjector(instance, ci.Info));
+                    ILibraryAsPropertiesLoader instance = (ILibraryAsPropertiesLoader)(Activator.CreateInstance(ci.AssemblyName, ci.ClassName).Unwrap());
+                    propertiesInjectors.Add(new PropertiesInjector(instance, ci.Info));
             }
 
             // Получаем и вставляем списки свойств. Класс инжектора должен иметь метод GetPropertyNamesForInjecting
@@ -243,8 +242,8 @@ namespace OneScript.HTTPService
             }
 
             // Присваиваем значения свойств
-            foreach (ILibraryAsPropertiesLoader injector in propertiesInjectors)
-                injector.AssignPropertiesValues(_hostedScript);
+            foreach (PropertiesInjector injector in propertiesInjectors)
+                injector.Loader.AssignPropertiesValues(_hostedScript);
         }
 
         public void CallCommonModuleProcedure(string moduleName, string methodName, IValue[] parameters)
@@ -292,6 +291,7 @@ namespace OneScript.HTTPService
         }
     }
 
+    // Класс отражает запись в web.config name="propertiesInjector;ИмяСборки;ИмяКласса" value="Info"
     public class PropertiesInjectorInfo
     {
         public string AssemblyName
@@ -313,6 +313,7 @@ namespace OneScript.HTTPService
         }
     }
 
+    // Класс отражает загруженный инжектор
     public class PropertiesInjector
     {
         public ILibraryAsPropertiesLoader Loader
