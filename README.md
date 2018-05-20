@@ -27,4 +27,4 @@
 ## DataProcessors
 Библиотека, реализующая механизм обработок в http-сервисах OneScript, аналогично платформе 1С:Предприятие.
 
-[Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/AspNetEngine/README.MD)
+[Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/DataProcessors/README.MD)
