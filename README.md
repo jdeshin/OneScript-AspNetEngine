@@ -1,23 +1,30 @@
 ﻿# OneScript-AspNetEngine
 
-Патч к http-сервисам OneScript 1.0.19, расширяющий их функционал.
+Настоящий проект представляет собой набор библиотек, реализующий расширенный функционал http-сервисов OneScript, который можно использовать совместно со штатными возможностями.
+Библиотеки является полностью совместимыми с "родными" http-сервисами OneScript и могут быть установлены поверх штатных библиотек.
 
 ## ASPNETHandler
-Реализация расширенного функционала ASPNETHandler для версии 1.0.19. 
+Реализация расширенного функционала в обработчике http-сервисов ASPNETHandler. 
 
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/ASPNETHandler/README.MD).
 
 ## WebBackgroundJobs
-Реализация механизма фоновых заданий в http-сервисах OneScript, аналогично платформе 1С:Предприятие.
+Библиотека, реализующая механизм фоновых заданий в http-сервисах OneScript, аналогично платформе 1С:Предприятие.
 
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/WebBackgroundJobs/README.MD)
 
 ## HttpMeans
-Реализация дополнительных методов и свойств для работы с http и web.
+Библиотека, реализующая дополнительные методы и свойства для работы с http и web.
 
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/HttpMeans/README.MD)
 
 ## AspNetEngine
 Служебная библиотека, реализующая пул объектов HostedScriptEngine в http-сервисах для выполнения фоновых заданий в отдельных потоках.
+Данная библиотека используется библиотеками ASPNetHandler и WebBackgroundJobs
+
+[Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/AspNetEngine/README.MD)
+
+## DataProcessors
+Библиотека, реализующая механизм обработок в http-сервисах OneScript, аналогично платформе 1С:Предприятие.
 
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/AspNetEngine/README.MD)
