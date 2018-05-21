@@ -49,6 +49,7 @@ namespace OneScript.HTTPService
             return (IValue)_hostedScript.EngineInstance.NewObject((LoadedModuleHandle)_dataProcessorObjectModules[name]);
         }
 
+
         public const string MandatoryMethodsText =
 @"// 
 Функция Создать() Экспорт
