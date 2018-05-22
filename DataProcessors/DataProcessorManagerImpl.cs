@@ -49,6 +49,13 @@ namespace OneScript.HTTPService
             return (IValue)_hostedScript.EngineInstance.NewObject((LoadedModuleHandle)_dataProcessorObjectModules[name]);
         }
 
+        [ContextMethod("ПолучитьМакет", "GetTemplate")]
+        public IValue GetTemplate(string objectName, string templateName)
+        {
+            // Создаем объект из модуля объекта
+            return ValueFactory.Create();
+        }
+
 
         public const string MandatoryMethodsText =
 @"// 
@@ -56,8 +63,8 @@ namespace OneScript.HTTPService
     Возврат ОбработкаМенеджерБазовый.Создать(""{{DataProcessorName}}"");
 КонецФункции
 //
-Функция ПолучитьМакет(Макет) Экспорт
-    Возврат Неопределено;
+Функция ПолучитьМакет(ИмяМакета) Экспорт
+    Возврат ОбработкаМенеджерБазовый.ПолучитьМакет(""{{DataProcessorName}}"", ИмяМакета);
 КонецФункции
 //
 ";
