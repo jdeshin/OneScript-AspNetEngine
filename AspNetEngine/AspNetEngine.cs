@@ -244,6 +244,8 @@ namespace OneScript.HTTPService
             // Присваиваем значения свойств
             foreach (PropertiesInjector injector in propertiesInjectors)
                 injector.Loader.AssignPropertiesValues(_hostedScript);
+
+            _hostedScript.EngineInstance.Environment.LoadMemory(MachineInstance.Current);
         }
 
         public void CallCommonModuleProcedure(string moduleName, string methodName, IValue[] parameters)
