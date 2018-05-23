@@ -32,11 +32,11 @@
   <ItemGroup>
     <Reference Include="ScriptEngine, Version=1.0.19.105, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\AspNetEngine\OneScript\ScriptEngine.dll</HintPath>
+      <HintPath>..\AspNetEngine\OneScript\10.0.1.20\ScriptEngine.dll</HintPath>
     </Reference>
     <Reference Include="ScriptEngine.HostedScript, Version=1.0.19.105, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\AspNetEngine\OneScript\ScriptEngine.HostedScript.dll</HintPath>
+      <HintPath>..\AspNetEngine\OneScript\10.0.1.20\ScriptEngine.HostedScript.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
