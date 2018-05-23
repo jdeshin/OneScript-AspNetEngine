@@ -65,6 +65,7 @@ namespace OneScript.HTTPService
                 if (!AspNetHostEngine.Pool.TryDequeue(out engine))
                     throw new RuntimeException("cannot deque engine");
 
+                engine.Engine.EngineInstance.Environment.LoadMemory(MachineInstance.Current);
                 engine.CallCommonModuleProcedure(job.MethodName, job.ExecutionParameters);
                 job.State = BackgroundJobState.Completed;
                 job.ExecutionParameters = null;
