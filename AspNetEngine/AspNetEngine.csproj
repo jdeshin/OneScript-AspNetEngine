@@ -30,12 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ScriptEngine, Version=1.0.19.105, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="ScriptEngine">
       <HintPath>OneScript\10.0.1.20\ScriptEngine.dll</HintPath>
     </Reference>
-    <Reference Include="ScriptEngine.HostedScript, Version=1.0.19.105, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="ScriptEngine.HostedScript">
       <HintPath>OneScript\10.0.1.20\ScriptEngine.HostedScript.dll</HintPath>
     </Reference>
     <Reference Include="System" />

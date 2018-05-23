@@ -52,7 +52,7 @@ namespace OneScript.ASPNETHandler
             //
             AspNetHostEngine.Pool.TryDequeue(out _engine);
             _hostedScript = _engine.Engine;
-
+            
             try
             {
                 CallScriptHandler(context);
