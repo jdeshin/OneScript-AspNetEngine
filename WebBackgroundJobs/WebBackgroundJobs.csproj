@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackgroundJobs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WebBackgroundJob.cs" />
     <Compile Include="WebBackgroundJobImpl.cs" />
@@ -57,6 +58,10 @@
     <ProjectReference Include="..\AspNetEngine\AspNetEngine.csproj">
       <Project>{9017ab7c-e605-4ea8-9e38-cb745231657c}</Project>
       <Name>AspNetEngine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibraryAsPropertiesLoader\LibraryAsPropertiesLoader.csproj">
+      <Project>{a3f7e191-6f13-4754-980b-458345ba1a08}</Project>
+      <Name>LibraryAsPropertiesLoader</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
