@@ -104,8 +104,7 @@ namespace OneScript.HTTPService
                     // Запись должна быть вида <key="attachAsDataProcessor;ИмяСборки;ИмяТипа" value="[ИмяОбработки]" />
                     // Если пункта ИмяОбработки нет - получаем из атрибута класса
                     string[] dataProcessorInfo = info.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
-                    System.IO.TextWriter tw = System.IO.File.CreateText("c:\\1\\obr.txt");
-                    tw.WriteLine(dataProcessorInfo.Length.ToString());
+
                     if (dataProcessorInfo.Length !=3)
                         continue;
 
@@ -115,10 +114,6 @@ namespace OneScript.HTTPService
                     string assemblyName = dataProcessorInfo[1].Trim();
                     object instance = Activator.CreateInstance(assemblyName, typeName).Unwrap();
                    
-                    tw.WriteLine(typeName);
-                    tw.Write(assemblyName);
-                    tw.Write(dataProcessorName);
-                    tw.Close();
                     if (dataProcessorName == "")
                     {
                         ContextClassAttribute attribute = instance.GetType().GetCustomAttributes(typeof(ContextClassAttribute), false).FirstOrDefault() as ContextClassAttribute;
