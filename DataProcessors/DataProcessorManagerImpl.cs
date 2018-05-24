@@ -98,21 +98,23 @@ namespace OneScript.HTTPService
 
             foreach (string typeInfo in appSettings.AllKeys)
             {
-                if (appSettings[typeInfo] == "attachAsDataProcessor")
+                string info = typeInfo.Replace(" ", "");
+                if (info.StartsWith("attachAsDataProcessor;"))
                 {
-                    // Запись должна быть вида <key="ИмяСборки;ИмяТипа;[ИмяОбработки]"
+                    // Запись должна быть вида <key="attachAsDataProcessor;ИмяСборки;ИмяТипа" value="[ИмяОбработки]" />
                     // Если пункта ИмяОбработки нет - получаем из атрибута класса
-                    string[] dataProcessorInfo = typeInfo.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] dataProcessorInfo = info.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
 
-                    if (dataProcessorInfo.Length < 2)
+                    if (dataProcessorInfo.Length != 3)
                         continue;
 
-                    string typeName = dataProcessorInfo[1].Trim();
-                    string dataProcessorName = "";
-                    string assemblyName = dataProcessorInfo[0].Trim();
+                    string typeName = dataProcessorInfo[2].Trim();
+                    string dataProcessorName = appSettings[typeInfo] ?? "";
+                    dataProcessorName = dataProcessorName.Replace(" ", "");
+                    string assemblyName = dataProcessorInfo[1].Trim();
                     object instance = Activator.CreateInstance(assemblyName, typeName).Unwrap();
 
-                    if (dataProcessorInfo.Length == 2)
+                    if (dataProcessorName == "")
                     {
                         ContextClassAttribute attribute = instance.GetType().GetCustomAttributes(typeof(ContextClassAttribute), false).FirstOrDefault() as ContextClassAttribute;
 
@@ -121,13 +123,12 @@ namespace OneScript.HTTPService
                         else
                             continue;
                     }
-                    else
-                        dataProcessorName = dataProcessorInfo[2].Trim();
 
                     dataProcessors.Insert(dataProcessorName, (IValue)instance);
                 }
             }
         }
+    }
     }
 
 }
