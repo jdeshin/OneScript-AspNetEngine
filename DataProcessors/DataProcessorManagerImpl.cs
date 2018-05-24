@@ -129,6 +129,4 @@ namespace OneScript.HTTPService
             }
         }
     }
-    }
-
 }
