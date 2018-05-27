@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibraryAsPropertiesLoader",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataProcessors", "DataProcessors\DataProcessors.csproj", "{158C2528-F10C-4042-90F0-F3C034CFAD8D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlDataProcessor", "SqlDataProcessor\SqlDataProcessor.csproj", "{AD2BA265-8C5C-4FC0-B5D2-684580CC5CFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlDataProcessorCom", "SqlDataProcessorCom\SqlDataProcessorCom.csproj", "{971E1227-7E96-4F2A-9704-B3186100A12F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,14 @@ Global
 		{158C2528-F10C-4042-90F0-F3C034CFAD8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{158C2528-F10C-4042-90F0-F3C034CFAD8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{158C2528-F10C-4042-90F0-F3C034CFAD8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD2BA265-8C5C-4FC0-B5D2-684580CC5CFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD2BA265-8C5C-4FC0-B5D2-684580CC5CFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD2BA265-8C5C-4FC0-B5D2-684580CC5CFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD2BA265-8C5C-4FC0-B5D2-684580CC5CFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{971E1227-7E96-4F2A-9704-B3186100A12F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{971E1227-7E96-4F2A-9704-B3186100A12F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{971E1227-7E96-4F2A-9704-B3186100A12F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{971E1227-7E96-4F2A-9704-B3186100A12F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
