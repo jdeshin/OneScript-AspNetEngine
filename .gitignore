@@ -267,3 +267,19 @@ AspNetEngine/OneScript/*.xml
 AspNetEngine/OneScript/*.cfg
 AspNetEngine/OneScript/*.zip
 AspNetEngine/OneScript/*.bat
+
+# oscript-sql binaries
+SqlDataProcessor/OscriptSqlBinaries/*.dll
+SqlDataProcessor/OscriptSqlBinaries/*.exe
+SqlDataProcessor/OscriptSqlBinaries/*.xml
+SqlDataProcessor/OscriptSqlBinaries/*.cfg
+SqlDataProcessor/OscriptSqlBinaries/*.zip
+SqlDataProcessor/OscriptSqlBinaries/*.bat
+
+# oscript-sql signed binaries
+SqlDataProcessorCom/SignedBinaries/*.dll
+SqlDataProcessorCom/SignedBinaries/*.exe
+SqlDataProcessorCom/SignedBinaries/*.xml
+SqlDataProcessorCom/SignedBinaries/*.cfg
+SqlDataProcessorCom/SignedBinaries/*.zip
+SqlDataProcessorCom/SignedBinaries/*.bat
