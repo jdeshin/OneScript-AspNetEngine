@@ -339,17 +339,8 @@ namespace OScriptSql.Com
 
         private bool OpenConnection()
         {
-            try
-            {
-                _connection.Open();
+               _connection.Open();
                 return true;
-            }
-            catch (Exception e)
-            {
-                // Надо сказать Ret, чтоб убрал
-                //Console.WriteLine(e.Message);
-                return false;
-            }
         }
 
         /// <summary>
