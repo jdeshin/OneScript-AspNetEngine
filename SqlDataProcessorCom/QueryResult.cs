@@ -31,6 +31,8 @@ namespace OScriptSql.Com
         string GetColumnName(int index);
         [DispId(4)]
         object GetCellValue(int rowIndex, int columnIndex);
+        [DispId(5)]
+        bool IsBinaryData(int rowIndex, int columnIndex);
     }
 
     [ComVisible(true)]
@@ -162,7 +164,18 @@ namespace OScriptSql.Com
 
         public object GetCellValue(int rowIndex, int columnIndex)
         {
-            return _resultTable.Rows[rowIndex][columnIndex];
+            if (IsBinaryData(rowIndex, columnIndex))
+            {
+                return Convert.ToBase64String((byte [])_resultTable.Rows[rowIndex][columnIndex]);
+            }
+            else
+                return _resultTable.Rows[rowIndex][columnIndex];
+        }
+
+        public bool IsBinaryData(int rowIndex, int columnIndex)
+        {
+            return (_resultTable.Rows[rowIndex][columnIndex].GetType() == typeof(byte [])) ||
+                (_resultTable.Rows[rowIndex][columnIndex].GetType() == typeof(System.Byte[]));
         }
 
         public int RowsCount

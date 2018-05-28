@@ -28,7 +28,7 @@ namespace OScriptSql.Com
         [DispId(2)]
         int ExecuteCommand();
         [DispId(3)]
-        void SetParameter(string ParametrName, object ParametrValue);
+        void SetParameter(string ParametrName, object ParametrValue, bool isBinary = false);
         [DispId(3)]
         void SetConnection(DBConnector connector);
     }
@@ -219,8 +219,12 @@ namespace OScriptSql.Com
         /// <param name="ParametrValue">Произвольный - Значение параметра</param>
         //[ContextMethod("УстановитьПараметр", "SetParameter")]
         //public void SetParameter(string ParametrName, IValue ParametrValue)
-        public void SetParameter(string ParametrName, object ParametrValue)
+        public void SetParameter(string ParametrName, object ParametrValue, bool isBinary = false)
         {
+            if (isBinary)
+            {
+                ParametrValue = Convert.FromBase64String((string)ParametrValue);
+            }
             //_parameters.Insert(ParametrName, ParametrValue);
             _parameters.Add(ParametrName, ParametrValue);
         }
