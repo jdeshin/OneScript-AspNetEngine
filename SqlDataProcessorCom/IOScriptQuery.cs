@@ -18,7 +18,7 @@ namespace OScriptSql.Com
         //IValue Execute();
         QueryResult Execute();
         //void SetParameter(string ParametrName, IValue ParametrValue);
-        void SetParameter(string ParametrName, object ParametrValue);
+        void SetParameter(string ParametrName, object ParametrValue, bool isBinary = false);
 
         // my methods
         void SetConnection(DBConnector connector);
