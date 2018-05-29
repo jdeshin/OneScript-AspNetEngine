@@ -1,9 +1,9 @@
 ﻿# SqlDataProcessor
 
 Библиотека, реализующая работу с СУБД в http-сервисах OneScript как с набором обработок.
-Библиотека создана на основе библиотеки oscript-sql (https://github.com/ret-Phoenix/oscript-sql) и фактически использует ее слегка модифицированный вариант для реализации возможности работы с библиотекой как с набором обработок.
+Библиотека создана на основе библиотеки [oscript-sql](https://github.com/ret-Phoenix/oscript-sql) и фактически использует ее слегка модифицированный вариант для реализации возможности работы с библиотекой как с набором обработок.
 Модифицированная библиотека oscript-sql является временным решением до выхода обновлений основной библиотеки.
-Реализация библиотеки для 1С:Предприятие находится (здесь)[https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/SqlDataProcessor/README.MD]
+Реализация библиотеки для 1С:Предприятие находится [здесь](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/SqlDataProcessorCom/README.MD)
 
 ## Установка
 
