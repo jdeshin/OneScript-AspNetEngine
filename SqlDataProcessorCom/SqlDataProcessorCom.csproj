@@ -77,6 +77,7 @@
   <ItemGroup />
   <ItemGroup>
     <None Include="oscript-sql-com.snk" />
+    <None Include="README.MD" />
     <None Include="SignedBinaries\README.MD" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
