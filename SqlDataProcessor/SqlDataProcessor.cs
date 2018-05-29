@@ -28,6 +28,15 @@ namespace OneScript.SqlDataProcessor
 
             return new OScriptSql.DBConnector ();
         }
+
+        [ContextMethod("ТипыСУБД", "DBMSTypes")]
+        public IValue DBMSTypes()
+        {
+            // Создаем объект из модуля объекта
+
+            return new OScriptSql.EnumDBType();
+        }
+
     }
 
     [ContextClass("ЗапросСУБД", "DBQuery")]
@@ -36,8 +45,7 @@ namespace OneScript.SqlDataProcessor
         [ContextMethod("Создать", "Create")]
         public IValue Create()
         {
-            // Создаем объект из модуля объекта
-
+            // Создаем модуль объекта
             return new OScriptSql.Query ();
         }
     }
