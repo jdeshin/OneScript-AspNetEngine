@@ -13,6 +13,18 @@
 
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/WebBackgroundJobs/README.MD)
 
+## DataProcessors
+Библиотека, реализующая механизм обработок в http-сервисах OneScript, аналогично платформе 1С:Предприятие.
+
+[Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/DataProcessors/README.MD)
+
+## SqlDataProcessor
+Библиотека, реализующая переносимый на уровне исходного кода механизм работы с СУБД в http-сервисах OneScript.
+
+Библиотека основана на библиотеке [oscript-sql](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/DataProcessors/README.MD)  
+
+[Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/SqlDataProcessor/README.MD)
+
 ## HttpMeans
 Библиотека, реализующая дополнительные методы и свойства для работы с http и web.
 
@@ -23,8 +35,3 @@
 Данная библиотека используется библиотеками ASPNetHandler и WebBackgroundJobs
 
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/AspNetEngine/README.MD)
-
-## DataProcessors
-Библиотека, реализующая механизм обработок в http-сервисах OneScript, аналогично платформе 1С:Предприятие.
-
-[Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/DataProcessors/README.MD)
