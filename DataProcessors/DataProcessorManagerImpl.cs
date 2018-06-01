@@ -52,9 +52,40 @@ namespace OneScript.HTTPService
         [ContextMethod("ПолучитьМакет", "GetTemplate")]
         public IValue GetTemplate(string objectName, string templateName)
         {
+            System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
+            string libPath = ConvertRelativePathToPhysical(appSettings["dataProcessorsPath"]);
+
             // Создаем объект из модуля объекта
-            return ValueFactory.Create();
+            string fileNameWithoutExtension = objectName + ".Макет." + templateName;
+
+            if (System.IO.File.Exists(libPath + fileNameWithoutExtension + ".txt"))
+            {
+                TextDocumentContext document = new TextDocumentContext();
+                document.Read(System.IO.File.ReadAllText(libPath + fileNameWithoutExtension + ".txt"));
+                return document;
+            }
+
+            if (System.IO.File.Exists(libPath + fileNameWithoutExtension + ".thtml"))
+                return new HTMLDocumentShellImpl(libPath + fileNameWithoutExtension + ".thtml");
+
+            if (System.IO.File.Exists(libPath + fileNameWithoutExtension + ".bin"))
+                return new BinaryDataContext(System.IO.File.ReadAllBytes(libPath + fileNameWithoutExtension + ".thtml"));
+
+            throw new Exception("Cannot find template: " + templateName);
         }
+
+        public static string ConvertRelativePathToPhysical(string path)
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string relPath = path.Replace("~", "");
+
+            if (relPath.StartsWith("/"))
+                relPath = relPath.Remove(0, 1);
+
+            relPath = relPath.Replace("/", System.IO.Path.DirectorySeparatorChar.ToString());
+            return System.IO.Path.Combine(baseDir, relPath);
+        }
+
 
 
         public const string MandatoryMethodsText =
