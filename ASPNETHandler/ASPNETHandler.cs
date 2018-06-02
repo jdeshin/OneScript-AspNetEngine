@@ -23,7 +23,6 @@ namespace OneScript.ASPNETHandler
     public class ASPNETHandler : IHttpHandler, System.Web.SessionState.IRequiresSessionState
     {
         AspNetHostEngine _engine;
-        HostedScriptEngine _hostedScript;
         // Разрешает или запрещает кэширование исходников *.os В Linux должно быть false иначе после изменений исходника старая версия будет в кэше
         // web.config -> <appSettings> -> <add key="CachingEnabled" value="true"/>
         static bool _cachingEnabled;
@@ -51,7 +50,6 @@ namespace OneScript.ASPNETHandler
             // Получаем экземпляр engine из пула
             //
             AspNetHostEngine.Pool.TryDequeue(out _engine);
-            _hostedScript = _engine.Engine;
 
             try
             {
@@ -64,7 +62,6 @@ namespace OneScript.ASPNETHandler
                 if (_engine != null)
                     AspNetHostEngine.Pool.Enqueue(_engine);
                 _engine = null;
-                _hostedScript = null;
             }
         }
 
@@ -158,17 +155,17 @@ namespace OneScript.ASPNETHandler
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IRuntimeContextInstance CreateServiceInstance(LoadedModuleHandle module)
         {
-            var runner = _hostedScript.EngineInstance.NewObject(module);
+            var runner = _engine.Engine.EngineInstance.NewObject(module);
             return runner;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private LoadedModuleHandle LoadByteCode(string filePath)
         {
-            var code = _hostedScript.EngineInstance.Loader.FromFile(filePath);
-            var compiler = _hostedScript.GetCompilerService();
+            var code = _engine.Engine.EngineInstance.Loader.FromFile(filePath);
+            var compiler = _engine.Engine.GetCompilerService();
             var byteCode = compiler.CreateModule(code);
-            var module = _hostedScript.EngineInstance.LoadModuleImage(byteCode);
+            var module = _engine.Engine.EngineInstance.LoadModuleImage(byteCode);
             return module;
         }
 
