@@ -55,6 +55,7 @@ namespace OneScript.ASPNETHandler
 
             try
             {
+                _engine.Engine.EngineInstance.Environment.LoadMemory(MachineInstance.Current);
                 CallScriptHandler(context);
                 context.Response.End();
             }
