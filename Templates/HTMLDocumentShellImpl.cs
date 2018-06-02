@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Yury Deshin 2018
+//
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
