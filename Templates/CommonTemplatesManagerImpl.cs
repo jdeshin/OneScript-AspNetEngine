@@ -16,8 +16,9 @@ using ScriptEngine.HostedScript;
 namespace OneScript.HTTPService
 {
     [GlobalContext(Category = "Общие макеты")]
-    class CommonTemplatesManagerImpl : AutoContext<CommonTemplatesManagerImpl>
+    public class CommonTemplatesManagerImpl : GlobalContextBase<CommonTemplatesManagerImpl>
     {
+        /*
         static string _commonTemplatesPath;
 
         static CommonTemplatesManagerImpl()
@@ -25,10 +26,14 @@ namespace OneScript.HTTPService
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
             _commonTemplatesPath = ConvertRelativePathToPhysical(appSettings["commonTemplatesPath"]);
         }
-
+        */
         [ContextMethod("ПолучитьОбщийМакет", "GetCommonTemplate")]
-        public IValue GetCommonTemplate(string templateName)
+        public void GetCommonTemplate(string templateName)
         {
+            /*
+            System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
+            string _commonTemplatesPath = ConvertRelativePathToPhysical(appSettings["commonTemplatesPath"]);
+
             // Создаем объект из модуля объекта
             string fileNameWithoutExtension = templateName;
 
@@ -46,6 +51,8 @@ namespace OneScript.HTTPService
                 return new BinaryDataContext(System.IO.File.ReadAllBytes(_commonTemplatesPath + fileNameWithoutExtension + ".thtml"));
 
             throw new Exception("Cannot find template: " + templateName);
+            */
+            //return ValueFactory.Create("");
 
         }
 
@@ -59,6 +66,11 @@ namespace OneScript.HTTPService
 
             relPath = relPath.Replace("/", System.IO.Path.DirectorySeparatorChar.ToString());
             return System.IO.Path.Combine(baseDir, relPath);
+        }
+
+        public static IAttachableContext CreateInstance()
+        {
+            return new CommonTemplatesManagerImpl();
         }
 
     }
