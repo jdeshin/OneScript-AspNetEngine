@@ -51,8 +51,8 @@ namespace OneScript.HTTPService
                 return document;
             }
 
-            if (System.IO.File.Exists(path + fileNameWithoutExtension + ".thtml"))
-                return new HTMLDocumentShellImpl(path + fileNameWithoutExtension + ".thtml");
+            if (System.IO.File.Exists(path + fileNameWithoutExtension + ".html"))
+                return new HTMLDocumentShellImpl(path + fileNameWithoutExtension + ".html");
 
             if (System.IO.File.Exists(path + fileNameWithoutExtension + ".bin"))
                 return new BinaryDataContext(System.IO.File.ReadAllBytes(path + fileNameWithoutExtension + ".bin"));
