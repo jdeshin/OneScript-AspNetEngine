@@ -186,6 +186,12 @@ namespace OneScript.ASPNETHandler
                 {
 
                     // Загружаем файл и помещаем его в кэш
+                    if (!System.IO.File.Exists(context.Request.PhysicalPath))
+                    {
+                        context.Response.StatusCode = 404;
+                        return;
+                    }
+
                     module = LoadByteCode(context.Request.PhysicalPath);
                     CacheItemPolicy policy = new CacheItemPolicy();
                     List<string> filePaths = new List<string>();
@@ -197,6 +203,12 @@ namespace OneScript.ASPNETHandler
             }
             else
             {
+                if (!System.IO.File.Exists(context.Request.PhysicalPath))
+                {
+                    context.Response.StatusCode = 404;
+                    return;
+                }
+
                 module = LoadByteCode(context.Request.PhysicalPath);
             }
 
