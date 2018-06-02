@@ -18,7 +18,7 @@ using ScriptEngine.HostedScript;
 
 namespace OneScript.HTTPService
 {
-    [ContextClass("ОболочкаHTMLДокументаWeb", "HTMLDocumentShellImplWeb")]
+    [ContextClass("ОболочкаHTMLДокумента", "HTMLDocumentShell")]
     public class HTMLDocumentShellImpl : AutoContext<HTMLDocumentShellImpl>
     {
         string _text;
