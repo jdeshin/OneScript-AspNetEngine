@@ -34,19 +34,13 @@ namespace OneScript.HTTPService
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
             string _commonTemplatesPath = ConvertRelativePathToPhysical(appSettings["commonTemplatesPath"]);
 
-            System.IO.TextWriter tw = System.IO.File.CreateText("c:\\1\\1.txt");
-            tw.WriteLine(_commonTemplatesPath);
-            tw.WriteLine(templateName);
-            tw.WriteLine(_commonTemplatesPath + templateName + ".txt");
-            tw.Close();
-
             // Создаем объект из модуля объекта
             string fileNameWithoutExtension = templateName;
 
             if (System.IO.File.Exists(_commonTemplatesPath + fileNameWithoutExtension + ".txt"))
             {
                 TextDocumentContext document = new TextDocumentContext();
-                document.SetText(System.IO.File.ReadAllText(_commonTemplatesPath + fileNameWithoutExtension + ".txt"));
+                document.Read(_commonTemplatesPath + fileNameWithoutExtension + ".txt");
                 return document;
             }
 
@@ -54,7 +48,7 @@ namespace OneScript.HTTPService
                 return new HTMLDocumentShellImpl(_commonTemplatesPath + fileNameWithoutExtension + ".thtml");
 
             if (System.IO.File.Exists(_commonTemplatesPath + fileNameWithoutExtension + ".bin"))
-                return new BinaryDataContext(System.IO.File.ReadAllBytes(_commonTemplatesPath + fileNameWithoutExtension + ".thtml"));
+                return new BinaryDataContext(System.IO.File.ReadAllBytes(_commonTemplatesPath + fileNameWithoutExtension + ".bin"));
 
             throw new Exception("Cannot find template: " + templateName);
             

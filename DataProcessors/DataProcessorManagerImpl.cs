@@ -61,7 +61,7 @@ namespace OneScript.HTTPService
             if (System.IO.File.Exists(libPath + fileNameWithoutExtension + ".txt"))
             {
                 TextDocumentContext document = new TextDocumentContext();
-                document.Read(System.IO.File.ReadAllText(libPath + fileNameWithoutExtension + ".txt"));
+                document.Read(libPath + fileNameWithoutExtension + ".txt");
                 return document;
             }
 
@@ -69,7 +69,7 @@ namespace OneScript.HTTPService
                 return new HTMLDocumentShellImpl(libPath + fileNameWithoutExtension + ".thtml");
 
             if (System.IO.File.Exists(libPath + fileNameWithoutExtension + ".bin"))
-                return new BinaryDataContext(System.IO.File.ReadAllBytes(libPath + fileNameWithoutExtension + ".thtml"));
+                return new BinaryDataContext(System.IO.File.ReadAllBytes(libPath + fileNameWithoutExtension + ".bin"));
 
             throw new Exception("Cannot find template: " + templateName);
         }
