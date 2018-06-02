@@ -86,7 +86,7 @@ namespace OneScript.HTTPService
                 if (enginesCount > workerThreads)
                     enginesCount = workerThreads;
 
-                AspNetLog.Write(logWriter, "Max threads running/worker/completionPort: " + enginesCount.ToString() + "/"+ workerThreads.ToString() + "/" + completionPortThreads.ToString());
+                AspNetLog.Write(logWriter, "Max threads running/worker/completionPort: " + enginesCount.ToString() + "/" + workerThreads.ToString() + "/" + completionPortThreads.ToString());
 
                 while (enginesCount > 0)
                 {
@@ -204,7 +204,7 @@ namespace OneScript.HTTPService
             // Аттачим доп сборки. По идее должны лежать в Bin
             foreach (System.Reflection.Assembly assembly in assembliesForAttaching)
             {
-                    _hostedScript.AttachAssembly(assembly);
+                _hostedScript.AttachAssembly(assembly);
             }
 
             // Добавляем свойства для общих модулей
@@ -215,17 +215,17 @@ namespace OneScript.HTTPService
 
             // Загружаем классы инжекторов свойств
             List<PropertiesInjector> propertiesInjectors = new List<PropertiesInjector>();
-            foreach(PropertiesInjectorInfo ci in propertiesInjectorsInfo)
+            foreach (PropertiesInjectorInfo ci in propertiesInjectorsInfo)
             {
-                    ILibraryAsPropertiesLoader instance = (ILibraryAsPropertiesLoader)(Activator.CreateInstance(ci.AssemblyName, ci.ClassName).Unwrap());
-                    propertiesInjectors.Add(new PropertiesInjector(instance, ci.Info));
+                ILibraryAsPropertiesLoader instance = (ILibraryAsPropertiesLoader)(Activator.CreateInstance(ci.AssemblyName, ci.ClassName).Unwrap());
+                propertiesInjectors.Add(new PropertiesInjector(instance, ci.Info));
             }
 
             // Получаем и вставляем списки свойств. Класс инжектора должен иметь метод GetPropertyNamesForInjecting
-            foreach(PropertiesInjector injector in propertiesInjectors)
+            foreach (PropertiesInjector injector in propertiesInjectors)
             {
                 List<string> propertiesNames = injector.Loader.GetPropertiesNamesForInjecting(injector.Info);
-                foreach(string cp in propertiesNames)
+                foreach (string cp in propertiesNames)
                     _hostedScript.InjectGlobalProperty(cp, ValueFactory.Create(), true);
             }
 
@@ -244,6 +244,8 @@ namespace OneScript.HTTPService
             // Присваиваем значения свойств
             foreach (PropertiesInjector injector in propertiesInjectors)
                 injector.Loader.AssignPropertiesValues(_hostedScript);
+
+            _hostedScript.EngineInstance.Environment.LoadMemory(MachineInstance.Current);
         }
 
         public void CallCommonModuleProcedure(string moduleName, string methodName, IValue[] parameters)
@@ -335,4 +337,3 @@ namespace OneScript.HTTPService
         }
     }
 }
-
