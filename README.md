@@ -23,6 +23,11 @@
 
 [Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/Enums/README.MD)
 
+## Templates
+Библиотека, реализующая механизм макетов в http-сервисах OneScript, аналогично платформе 1С:Предприятие. 
+
+[Подробнее...](https://github.com/jdeshin/OneScript-AspNetEngine/blob/master/Templates/README.MD).
+
 ## SqlDataProcessor
 Библиотека, реализующая переносимый на уровне исходного кода механизм работы с СУБД в http-сервисах OneScript.
 
