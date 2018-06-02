@@ -27,7 +27,7 @@ namespace OneScript.HTTPService
         }
 
         [ContextMethod("ПолучитьТекст", "GetText")]
-        public IValue GetText(string name)
+        public IValue GetText()
         {
             // Создаем объект из модуля объекта
             return ValueFactory.Create(_text);
