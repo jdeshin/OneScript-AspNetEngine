@@ -54,24 +54,9 @@ namespace OneScript.HTTPService
         {
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
             string libPath = ConvertRelativePathToPhysical(appSettings["dataProcessorsPath"]);
-
-            // Создаем объект из модуля объекта
             string fileNameWithoutExtension = objectName + ".Макет." + templateName;
 
-            if (System.IO.File.Exists(libPath + fileNameWithoutExtension + ".txt"))
-            {
-                TextDocumentContext document = new TextDocumentContext();
-                document.Read(libPath + fileNameWithoutExtension + ".txt");
-                return document;
-            }
-
-            if (System.IO.File.Exists(libPath + fileNameWithoutExtension + ".thtml"))
-                return new HTMLDocumentShellImpl(libPath + fileNameWithoutExtension + ".thtml");
-
-            if (System.IO.File.Exists(libPath + fileNameWithoutExtension + ".bin"))
-                return new BinaryDataContext(System.IO.File.ReadAllBytes(libPath + fileNameWithoutExtension + ".bin"));
-
-            throw new Exception("Cannot find template: " + templateName);
+            return TemplatesManagerImpl.LoadTemplate(libPath, fileNameWithoutExtension);
         }
 
         public static string ConvertRelativePathToPhysical(string path)

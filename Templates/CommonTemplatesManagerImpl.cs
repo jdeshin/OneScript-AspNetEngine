@@ -16,44 +16,16 @@ using ScriptEngine.HostedScript;
 namespace OneScript.HTTPService
 {
     [GlobalContext(Category = "Общие макеты")]
-    public class CommonTemplatesManagerImpl : GlobalContextBase<CommonTemplatesManagerImpl>
+    public class TemplatesManagerImpl : GlobalContextBase<TemplatesManagerImpl>
     {
-        
-        //static string _commonTemplatesPath;
-
-        static CommonTemplatesManagerImpl()
-        {
-            //System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
-            //_commonTemplatesPath = ConvertRelativePathToPhysical(appSettings["commonTemplatesPath"]);
-        }
-        
         [ContextMethod("ПолучитьОбщийМакет", "GetCommonTemplate")]
         public IValue GetCommonTemplate(string templateName)
         {
-            
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
             string _commonTemplatesPath = ConvertRelativePathToPhysical(appSettings["commonTemplatesPath"]);
-
-            // Создаем объект из модуля объекта
             string fileNameWithoutExtension = templateName;
 
-            if (System.IO.File.Exists(_commonTemplatesPath + fileNameWithoutExtension + ".txt"))
-            {
-                TextDocumentContext document = new TextDocumentContext();
-                document.Read(_commonTemplatesPath + fileNameWithoutExtension + ".txt");
-                return document;
-            }
-
-            if (System.IO.File.Exists(_commonTemplatesPath + fileNameWithoutExtension + ".thtml"))
-                return new HTMLDocumentShellImpl(_commonTemplatesPath + fileNameWithoutExtension + ".thtml");
-
-            if (System.IO.File.Exists(_commonTemplatesPath + fileNameWithoutExtension + ".bin"))
-                return new BinaryDataContext(System.IO.File.ReadAllBytes(_commonTemplatesPath + fileNameWithoutExtension + ".bin"));
-
-            throw new Exception("Cannot find template: " + templateName);
-            
-            //return ValueFactory.Create("");
-
+            return LoadTemplate(_commonTemplatesPath, templateName);            
         }
 
         public static string ConvertRelativePathToPhysical(string path)
@@ -68,9 +40,27 @@ namespace OneScript.HTTPService
             return System.IO.Path.Combine(baseDir, relPath);
         }
 
+        public static IValue LoadTemplate(string path, string fileNameWithoutExtension)
+        {
+            if (System.IO.File.Exists(path + fileNameWithoutExtension + ".txt"))
+            {
+                TextDocumentContext document = new TextDocumentContext();
+                document.Read(path + fileNameWithoutExtension + ".txt");
+                return document;
+            }
+
+            if (System.IO.File.Exists(path + fileNameWithoutExtension + ".thtml"))
+                return new HTMLDocumentShellImpl(path + fileNameWithoutExtension + ".thtml");
+
+            if (System.IO.File.Exists(path + fileNameWithoutExtension + ".bin"))
+                return new BinaryDataContext(System.IO.File.ReadAllBytes(path + fileNameWithoutExtension + ".bin"));
+
+            throw new Exception("Cannot find template: " + fileNameWithoutExtension);
+        }
+
         public static IAttachableContext CreateInstance()
         {
-            return new CommonTemplatesManagerImpl();
+            return new TemplatesManagerImpl();
         }
 
     }
