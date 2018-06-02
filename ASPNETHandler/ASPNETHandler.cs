@@ -176,7 +176,7 @@ namespace OneScript.ASPNETHandler
             // Кэшируем исходный файл, если файл изменился (изменили скрипт .os) загружаем заново
             // В Linux под Mono не работает подписка на изменение файла.
             LoadedModuleHandle? module = null;
-            ObjectCache cache = MemoryCache.Default;
+            MemoryCache cache = MemoryCache.Default;
 
             if (_cachingEnabled)
             {
@@ -184,14 +184,14 @@ namespace OneScript.ASPNETHandler
 
                 if (module == null)
                 {
-                    CacheItemPolicy policy = new CacheItemPolicy();
 
+                    // Загружаем файл и помещаем его в кэш
+                    module = LoadByteCode(context.Request.PhysicalPath);
+                    CacheItemPolicy policy = new CacheItemPolicy();
                     List<string> filePaths = new List<string>();
                     filePaths.Add(context.Request.PhysicalPath);
                     policy.ChangeMonitors.Add(new HostFileChangeMonitor(filePaths));
 
-                    // Загружаем файл и помещаем его в кэш
-                    module = LoadByteCode(context.Request.PhysicalPath);
                     cache.Set(context.Request.PhysicalPath, module, policy);
                 }
             }
