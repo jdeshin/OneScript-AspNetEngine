@@ -19,20 +19,26 @@ namespace OneScript.HTTPService
     public class CommonTemplatesManagerImpl : GlobalContextBase<CommonTemplatesManagerImpl>
     {
         
-        static string _commonTemplatesPath;
+        //static string _commonTemplatesPath;
 
         static CommonTemplatesManagerImpl()
         {
-            System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
-            _commonTemplatesPath = ConvertRelativePathToPhysical(appSettings["commonTemplatesPath"]);
+            //System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
+            //_commonTemplatesPath = ConvertRelativePathToPhysical(appSettings["commonTemplatesPath"]);
         }
         
         [ContextMethod("ПолучитьОбщийМакет", "GetCommonTemplate")]
         public IValue GetCommonTemplate(string templateName)
         {
             
-            //System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
-            //string _commonTemplatesPath = ConvertRelativePathToPhysical(appSettings["commonTemplatesPath"]);
+            System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
+            string _commonTemplatesPath = ConvertRelativePathToPhysical(appSettings["commonTemplatesPath"]);
+
+            System.IO.TextWriter tw = System.IO.File.CreateText("c:\\1\\1.txt");
+            tw.WriteLine(_commonTemplatesPath);
+            tw.WriteLine(templateName);
+            tw.WriteLine(_commonTemplatesPath + templateName + ".txt");
+            tw.Close();
 
             // Создаем объект из модуля объекта
             string fileNameWithoutExtension = templateName;
@@ -40,7 +46,7 @@ namespace OneScript.HTTPService
             if (System.IO.File.Exists(_commonTemplatesPath + fileNameWithoutExtension + ".txt"))
             {
                 TextDocumentContext document = new TextDocumentContext();
-                document.Read(System.IO.File.ReadAllText(_commonTemplatesPath + fileNameWithoutExtension + ".txt"));
+                document.SetText(System.IO.File.ReadAllText(_commonTemplatesPath + fileNameWithoutExtension + ".txt"));
                 return document;
             }
 
