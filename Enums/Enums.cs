@@ -46,7 +46,7 @@ namespace OneScript.HTTPService
 
                 foreach (string currentValue in enumValues)
                 {
-                    currentEnum.Insert(currentValue, ValueFactory.Create((enumName + "." + currentValue).ToLower()));
+                    currentEnum.Insert(currentValue, ValueFactory.Create(enumName + "." + currentValue));
                 }
 
                 enums.Insert(System.IO.Path.GetFileNameWithoutExtension(filePathName), new FixedStructureImpl(currentEnum));
