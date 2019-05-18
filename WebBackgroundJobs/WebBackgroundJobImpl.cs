@@ -59,11 +59,14 @@ namespace OneScript.HTTPService
         }
 
         [ContextProperty("Конец", "End")]
-        public DateTime? End
+        public IValue End
         {
             get
             {
-                return _job.End;
+                if (_job.End == null)
+                    return ValueFactory.Create();
+                else
+                    return ValueFactory.Create((DateTime)_job.End);
             }
         }
 
@@ -77,11 +80,14 @@ namespace OneScript.HTTPService
         }
 
         [ContextProperty("Начало", "Begin")]
-        public DateTime? Begin
+        public IValue Begin
         {
             get
             {
-                return _job.Begin;
+                if (_job.Begin == null)
+                    return ValueFactory.Create();
+                else
+                    return ValueFactory.Create((DateTime)_job.Begin);
             }
         }
 
@@ -113,11 +119,11 @@ namespace OneScript.HTTPService
         }
 
         [ContextProperty("УникальныйИдентификатор", "UUID")]
-        public GuidWrapper UUID
+        public IValue UUID
         {
             get
             {
-                return new GuidWrapper(_job.UUID.ToString());
+                return (IValue)new GuidWrapper(_job.UUID.ToString());
             }
         }
 

@@ -162,6 +162,22 @@ namespace OneScript.HTTPService
             return result;
         }
 
+        [ContextMethod("НайтиПоУникальномуИдентификатору", "FindByUUID")]
+        public IValue FindByUUID(GuidWrapper UUID)
+        {
+            System.Guid findKey = new System.Guid(UUID.AsString());
+
+            foreach (System.Collections.Generic.KeyValuePair<Guid, WebBackgroundJob> ci in WebBackgroundJobsManager.Jobs)
+            {
+                if (ci.Key == findKey)
+                {
+                    return new WebBackgroundJobImpl(ci.Value);
+                }
+            }
+
+            return ValueFactory.Create();
+        }
+
         ArrayImpl GetAllJobs()
         {
             ArrayImpl result = new ArrayImpl();
