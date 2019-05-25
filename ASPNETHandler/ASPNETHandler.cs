@@ -22,7 +22,7 @@ namespace OneScript.ASPNETHandler
 {
     public class ASPNETHandler : IHttpHandler, System.Web.SessionState.IRequiresSessionState
     {
-        AspNetHostEngine _engine;
+        //AspNetHostEngine _engine;
         // Разрешает или запрещает кэширование исходников *.os В Linux должно быть false иначе после изменений исходника старая версия будет в кэше
         // web.config -> <appSettings> -> <add key="CachingEnabled" value="true"/>
         static bool _cachingEnabled;
@@ -49,19 +49,20 @@ namespace OneScript.ASPNETHandler
         {
             // Получаем экземпляр engine из пула
             //
-            AspNetHostEngine.Pool.TryDequeue(out _engine);
+            AspNetHostEngine _eng;
+            AspNetHostEngine.Pool.TryDequeue(out _eng);
 
             try
             {
-                _engine.Engine.EngineInstance.Environment.LoadMemory(MachineInstance.Current);
-                CallScriptHandler(context);
+                _eng.Engine.EngineInstance.Environment.LoadMemory(MachineInstance.Current);
+                CallScriptHandler(context, _eng);
                 context.Response.End();
             }
             finally
             {
-                if (_engine != null)
-                    AspNetHostEngine.Pool.Enqueue(_engine);
-                _engine = null;
+                if (_eng != null)
+                    AspNetHostEngine.Pool.Enqueue(_eng);
+                //_engine = null;
             }
         }
 
@@ -153,24 +154,24 @@ namespace OneScript.ASPNETHandler
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IRuntimeContextInstance CreateServiceInstance(LoadedModuleHandle module)
+        private IRuntimeContextInstance CreateServiceInstance(LoadedModuleHandle module, AspNetHostEngine _eng)
         {
-            var runner = _engine.Engine.EngineInstance.NewObject(module);
+            var runner = _eng.Engine.EngineInstance.NewObject(module);
             return runner;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private LoadedModuleHandle LoadByteCode(string filePath)
+        private LoadedModuleHandle LoadByteCode(string filePath, AspNetHostEngine _eng)
         {
-            var code = _engine.Engine.EngineInstance.Loader.FromFile(filePath);
-            var compiler = _engine.Engine.GetCompilerService();
+            var code = _eng.Engine.EngineInstance.Loader.FromFile(filePath);
+            var compiler = _eng.Engine.GetCompilerService();
             var byteCode = compiler.CreateModule(code);
-            var module = _engine.Engine.EngineInstance.LoadModuleImage(byteCode);
+            var module = _eng.Engine.EngineInstance.LoadModuleImage(byteCode);
             return module;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CallScriptHandler(HttpContext context)
+        private void CallScriptHandler(HttpContext context, AspNetHostEngine _eng)
         {
             #region Загружаем скрипт (файл .os)
             // Кэшируем исходный файл, если файл изменился (изменили скрипт .os) загружаем заново
@@ -192,7 +193,7 @@ namespace OneScript.ASPNETHandler
                         return;
                     }
 
-                    module = LoadByteCode(context.Request.PhysicalPath);
+                    module = LoadByteCode(context.Request.PhysicalPath, _eng);
                     CacheItemPolicy policy = new CacheItemPolicy();
                     List<string> filePaths = new List<string>();
                     filePaths.Add(context.Request.PhysicalPath);
@@ -209,12 +210,12 @@ namespace OneScript.ASPNETHandler
                     return;
                 }
 
-                module = LoadByteCode(context.Request.PhysicalPath);
+                module = LoadByteCode(context.Request.PhysicalPath, _eng);
             }
 
             #endregion
 
-            var runner = CreateServiceInstance(module.Value);
+            var runner = CreateServiceInstance(module.Value, _eng);
 
             ProduceResponse(context, runner);
         }
