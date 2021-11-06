@@ -13,6 +13,7 @@ using ScriptEngine;
 using ScriptEngine.Machine;
 using ScriptEngine.Environment;
 using ScriptEngine.HostedScript;
+using OneScript.ASPNETHandler;
 
 using System.Runtime.CompilerServices;
 

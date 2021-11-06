@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 using ScriptEngine.Environment;
 
-namespace OneScript.HTTPService
+namespace OneScript.ASPNETHandler
 {
     class AspEntryScriptSrc : ICodeSource
     {

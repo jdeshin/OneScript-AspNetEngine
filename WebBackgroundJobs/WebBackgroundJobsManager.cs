@@ -70,7 +70,7 @@ namespace OneScript.HTTPService
                 job.State = BackgroundJobState.Completed;
                 job.ExecutionParameters = null;
             }
-            catch (ScriptEngine.ScriptException ex)
+            catch (OneScript.Language.ScriptException ex)
             {
                 job.ErrorInfo = new ExceptionInfoContext(ex);
                 job.State = BackgroundJobState.Failed;
