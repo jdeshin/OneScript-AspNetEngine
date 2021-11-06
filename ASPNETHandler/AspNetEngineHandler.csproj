@@ -7,8 +7,8 @@
     <ProjectGuid>{B30051B1-616A-4669-A06E-7A9C601435F7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ASPNETHandler</RootNamespace>
-    <AssemblyName>ASPNETHandler</AssemblyName>
+    <RootNamespace>AspNetEngineHandler</RootNamespace>
+    <AssemblyName>AspNetEngineHandler</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -48,7 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ASPNETHandler.cs" />
+    <Compile Include="AspNetEngineHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -18,9 +18,9 @@ using OneScript.HTTPService;
 
 using System.Runtime.CompilerServices;
 
-namespace OneScript.ASPNETHandler
+namespace OneScript.AspNetEngineHandler
 {
-    public class ASPNETHandler : IHttpHandler, System.Web.SessionState.IRequiresSessionState
+    public class AspNetEngineHandler : IHttpHandler, System.Web.SessionState.IRequiresSessionState
     {
         //AspNetHostEngine _engine;
         // Разрешает или запрещает кэширование исходников *.os В Linux должно быть false иначе после изменений исходника старая версия будет в кэше
@@ -32,7 +32,7 @@ namespace OneScript.ASPNETHandler
             // Разрешаем повторное использование и храним среду выполнения и контекст 
             get { return true; }
         }
-        static ASPNETHandler()
+        static AspNetEngineHandler()
         {
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
             _cachingEnabled = (appSettings["cachingEnabled"] == "true");
@@ -41,7 +41,7 @@ namespace OneScript.ASPNETHandler
             int temp = AspNetHostEngine.Pool.Count;
         }
 
-        public ASPNETHandler()
+        public AspNetEngineHandler()
         {
         }
 
