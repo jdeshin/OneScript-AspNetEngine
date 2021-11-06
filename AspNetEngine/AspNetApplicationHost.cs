@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Library;
 
@@ -58,7 +59,7 @@ namespace OneScript.HTTPService
             throw new NotImplementedException();
         }
 
-        public bool InputString(out string result, int maxLen)
+        public bool InputString(out string result, string prompt, int maxLen, bool multiline)
         {
             throw new NotImplementedException();
         }

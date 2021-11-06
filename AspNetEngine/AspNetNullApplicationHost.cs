@@ -32,7 +32,7 @@ namespace OneScript.HTTPService
             // Непонятно что это, наверное аналог системного диалога, на сервере нет никаких диалогов
         }
 
-        public bool InputString(out string result, int maxLen)
+        public bool InputString(out string result, string prompt, int maxLen, bool multiline)
         {
             // Мы не можем вводить никаких строк на сервере в 1С это недоступно
             result = null;

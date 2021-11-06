@@ -235,7 +235,7 @@ namespace OneScript.HTTPService
                 ICodeSource src = _hostedScript.Loader.FromString((string)cm.Value);
 
                 var compilerService = _hostedScript.GetCompilerService();
-                var module = compilerService.CreateModule(src);
+                var module = compilerService.Compile(src);
                 var loaded = _hostedScript.EngineInstance.LoadModuleImage(module);
                 var instance = (IValue)_hostedScript.EngineInstance.NewObject(loaded);
                 _hostedScript.EngineInstance.Environment.SetGlobalProperty((string)cm.Key, instance);

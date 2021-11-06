@@ -62,7 +62,6 @@ namespace OneScript.ASPNETHandler
             {
                 if (_eng != null)
                     AspNetHostEngine.Pool.Enqueue(_eng);
-                //_engine = null;
             }
         }
 
@@ -154,18 +153,18 @@ namespace OneScript.ASPNETHandler
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IRuntimeContextInstance CreateServiceInstance(LoadedModuleHandle module, AspNetHostEngine _eng)
+        private IRuntimeContextInstance CreateServiceInstance(LoadedModule module, AspNetHostEngine _eng)
         {
             var runner = _eng.Engine.EngineInstance.NewObject(module);
             return runner;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private LoadedModuleHandle LoadByteCode(string filePath, AspNetHostEngine _eng)
+        private LoadedModule LoadByteCode(string filePath, AspNetHostEngine _eng)
         {
             var code = _eng.Engine.EngineInstance.Loader.FromFile(filePath);
             var compiler = _eng.Engine.GetCompilerService();
-            var byteCode = compiler.CreateModule(code);
+            var byteCode = compiler.Compile(code);
             var module = _eng.Engine.EngineInstance.LoadModuleImage(byteCode);
             return module;
         }
@@ -176,12 +175,13 @@ namespace OneScript.ASPNETHandler
             #region Загружаем скрипт (файл .os)
             // Кэшируем исходный файл, если файл изменился (изменили скрипт .os) загружаем заново
             // В Linux под Mono не работает подписка на изменение файла.
-            LoadedModuleHandle? module = null;
-            MemoryCache cache = MemoryCache.Default;
+            LoadedModule module = null;
+            //MemoryCache cache = MemoryCache.Default;
+            ObjectCache cache = MemoryCache.Default;
 
             if (_cachingEnabled)
             {
-                module = cache[context.Request.PhysicalPath] as LoadedModuleHandle?;
+                module = cache[context.Request.PhysicalPath] as LoadedModule;
 
                 if (module == null)
                 {
@@ -215,7 +215,7 @@ namespace OneScript.ASPNETHandler
 
             #endregion
 
-            var runner = CreateServiceInstance(module.Value, _eng);
+            var runner = CreateServiceInstance(module, _eng);
 
             ProduceResponse(context, runner);
         }

@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OneScript.Language">
+      <HintPath>..\AspNetEngine\OneScript\OneScript.Language.dll</HintPath>
+    </Reference>
     <Reference Include="ScriptEngine">
       <HintPath>..\AspNetEngine\OneScript\ScriptEngine.dll</HintPath>
     </Reference>

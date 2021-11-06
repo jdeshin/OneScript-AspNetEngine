@@ -33,7 +33,7 @@ namespace OneScript.HTTPService
                 ICodeSource src = _hostedScript.Loader.FromString((string)co.Value);
 
                 var compilerService = _hostedScript.GetCompilerService();
-                var module = compilerService.CreateModule(src);
+                var module = compilerService.Compile(src);
 
                 var _loaded = _hostedScript.EngineInstance.LoadModuleImage(module);
                 _dataProcessorObjectModules.Add(co.Key, _loaded);
@@ -46,7 +46,7 @@ namespace OneScript.HTTPService
         public IValue Create(string name)
         {
             // Создаем объект из модуля объекта
-            return (IValue)_hostedScript.EngineInstance.NewObject((LoadedModuleHandle)_dataProcessorObjectModules[name]);
+            return (IValue)_hostedScript.EngineInstance.NewObject((LoadedModule)_dataProcessorObjectModules[name]);
         }
 
         [ContextMethod("ПолучитьМакет", "GetTemplate")]
@@ -98,7 +98,7 @@ namespace OneScript.HTTPService
             {
                 ICodeSource src = _hostedScript.Loader.FromString(InsertMandatoryMethods((string)cm.Value, (string)cm.Key));
                 var compilerService = _hostedScript.GetCompilerService();
-                var module = compilerService.CreateModule(src);
+                var module = compilerService.Compile(src);
                 var _loaded = _hostedScript.EngineInstance.LoadModuleImage(module);
                 dataProcessors.Insert((string)cm.Key, (IValue)_hostedScript.EngineInstance.NewObject(_loaded));
             }
