@@ -30,7 +30,7 @@ namespace OneScript.HTTPService
       Методы:
 
       +ПолучитьТелоКакДвоичныеДанные (GetBodyAsBinaryData)
-      ПолучитьТелоКакПоток (GetBodyAsStream)
+      +ПолучитьТелоКакПоток (GetBodyAsStream)
       +ПолучитьТелоКакСтроку (GetBodyAsString)
 
     */
