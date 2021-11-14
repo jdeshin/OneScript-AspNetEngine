@@ -26,7 +26,7 @@
 	<!-- ... -->
 	<system.webServer>
 		<handlers>
-			<add verb="*" path="*.os" type="OneScript.AspNetEngineHandler.AspNetEngineHandler" name="AspNetEngineHandler" />
+			<add verb="*" path="*.os" type="OneScript.HTTPService.AspNetEngineHandler" name="AspNetEngineHandler" />
 		</handlers>
 	</system.webServer>
 	<!-- ... -->
