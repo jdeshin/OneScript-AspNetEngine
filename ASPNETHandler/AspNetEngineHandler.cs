@@ -18,7 +18,7 @@ using OneScript.HTTPService;
 
 using System.Runtime.CompilerServices;
 
-namespace OneScript.AspNetEngineHandler
+namespace OneScript.HTTPService
 {
     public class AspNetEngineHandler : IHttpHandler, System.Web.SessionState.IRequiresSessionState
     {
