@@ -274,6 +274,8 @@ OneScript/*.xml
 OneScript/*.cfg
 OneScript/*.zip
 OneScript/*.bat
+OneScript/*.config
+OneScript/*.so
 
 # oscript-sql binaries
 SqlDataProcessor/OscriptSqlBinaries/*.dll
