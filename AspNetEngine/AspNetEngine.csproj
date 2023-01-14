@@ -61,7 +61,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="OneScript\README.MD" />
     <None Include="README.MD" />
   </ItemGroup>
   <ItemGroup>
