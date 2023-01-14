@@ -30,14 +30,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OneScript.Language">
-      <HintPath>..\AspNetEngine\OneScript\OneScript.Language.dll</HintPath>
+    <Reference Include="OneScript.Language, Version=1.7.0.214, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\OneScript\OneScript.Language.dll</HintPath>
     </Reference>
-    <Reference Include="ScriptEngine">
-      <HintPath>..\AspNetEngine\OneScript\ScriptEngine.dll</HintPath>
+    <Reference Include="ScriptEngine, Version=1.7.0.214, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\OneScript\ScriptEngine.dll</HintPath>
     </Reference>
-    <Reference Include="ScriptEngine.HostedScript">
-      <HintPath>..\AspNetEngine\OneScript\ScriptEngine.HostedScript.dll</HintPath>
+    <Reference Include="ScriptEngine.HostedScript, Version=1.7.0.214, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\OneScript\ScriptEngine.HostedScript.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
