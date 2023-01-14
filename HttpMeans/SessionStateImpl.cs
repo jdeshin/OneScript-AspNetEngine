@@ -62,7 +62,7 @@ namespace OneScript.HTTPService
         {
             return (IValue)HttpContext.Current.Session[name];
         }
-
+        
         [ContextMethod("Вставить", "Insert")]
         public void Insert(string name, IValue value)
         {
@@ -79,6 +79,12 @@ namespace OneScript.HTTPService
         public void Delete(string name)
         {
             HttpContext.Current.Session.Remove(name);
+        }
+
+        [ContextMethod("Получить", "Get")]
+        public IValue Get(int index)
+        {
+            return (IValue)HttpContext.Current.Session[index];
         }
 
     }
