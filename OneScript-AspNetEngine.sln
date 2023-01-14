@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetEngine", "AspNetEngin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebBackgroundJobs", "WebBackgroundJobs\WebBackgroundJobs.csproj", "{FE49F8F1-9F24-40B4-A06F-905B08D564ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpMeans", "HttpMeans\HttpMeans.csproj", "{6466645E-0640-44E2-8637-994029405E63}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetEngineHttpMeans", "HttpMeans\AspNetEngineHttpMeans.csproj", "{6466645E-0640-44E2-8637-994029405E63}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScript.DataProcessor.Demo", "OneScript.DataProcessor.Demo\OneScript.DataProcessor.Demo.csproj", "{3CF67287-BE13-4ADB-9287-ED723B8581A2}"
 EndProject

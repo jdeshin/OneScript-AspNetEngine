@@ -20,14 +20,11 @@ using System.Web;
 
 namespace OneScript.HTTPService
 {
-    [ContextClass("HTTPСервисПараметрыСессии", "HTTPServiceRequestSessionState")]
+    [ContextClass("ПараметрыСессииHTTP", "HTTPSessionState")]
     public class SessionStateImpl : AutoContext<SessionStateImpl>
     {
-        System.Web.HttpContext _context;
-
-        public SessionStateImpl(System.Web.HttpContext context)
+        public SessionStateImpl()
         {
-            _context = context;
         }
 
         [ContextProperty("Количество", "Count")]
@@ -35,7 +32,7 @@ namespace OneScript.HTTPService
         {
             get
             {
-                return ValueFactory.Create(_context.Session.Count);
+                return ValueFactory.Create(System.Web.HttpContext.Current.Session.Count);
             }
         }
 
@@ -86,6 +83,5 @@ namespace OneScript.HTTPService
         {
             return (IValue)HttpContext.Current.Session[index];
         }
-
     }
 }

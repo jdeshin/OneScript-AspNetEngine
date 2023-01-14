@@ -58,7 +58,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <None Include="OscriptSqlBinaries\README.MD" />
     <None Include="README.MD" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

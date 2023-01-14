@@ -4,13 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6466645E-0640-44E2-8637-994029405E63}</ProjectGuid>
+    <ProjectGuid>{8EE0F496-3E2F-48E8-8881-851CD86ADAD5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HttpMeans</RootNamespace>
-    <AssemblyName>HttpMeans</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <RootNamespace>HttpMeansDataProcessor</RootNamespace>
+    <AssemblyName>HttpMeansDataProcessor</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,12 +31,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ScriptEngine, Version=1.7.0.214, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="OneScript.Language">
+      <HintPath>..\OneScript\OneScript.Language.dll</HintPath>
+    </Reference>
+    <Reference Include="ScriptEngine">
       <HintPath>..\OneScript\ScriptEngine.dll</HintPath>
     </Reference>
-    <Reference Include="ScriptEngine.HostedScript, Version=1.7.0.214, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="ScriptEngine.HostedScript">
       <HintPath>..\OneScript\ScriptEngine.HostedScript.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -49,13 +51,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HttpMeansImpl.cs" />
-    <Compile Include="HttpServiceContextImpl.cs" />
+    <Compile Include="HttpFunctionsDataProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SessionStateImpl.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="README.MD" />
+    <ProjectReference Include="..\HttpMeans\AspNetEngineHttpMeans.csproj">
+      <Project>{6466645e-0640-44e2-8637-994029405e63}</Project>
+      <Name>AspNetEngineHttpMeans</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

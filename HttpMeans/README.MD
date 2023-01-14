@@ -1,4 +1,4 @@
-﻿# HttpMeans
+﻿# AspNetEngineHttpMeans
 
 ## Описание
 
@@ -11,7 +11,7 @@
 Затем, необходимо подключить библиотеку, добавив нижеследующую строку в секцию ```<appSettings>```, файла web.config:
 
 ```bsl
-<add key="HttpMeans" value="attachAssembly" />
+<add key="AspNetEngineHttpMeans" value="attachAssembly" />
 ```
 
 ## Функционал
@@ -26,9 +26,9 @@
 
 Свойства:
 
--ТекущийКонтекст. Возвращает контекст текущего запроса (HTTPСервисКонтекст). Основа - свойство [System.Web.HttpContext.Current](https://msdn.microsoft.com/ru-ru/library/system.web.httpcontext.current%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396).
+-ТекущийКонтекст. Возвращает контекст текущего запроса (HTTPКонтекст). Основа - свойство [System.Web.HttpContext.Current](https://msdn.microsoft.com/ru-ru/library/system.web.httpcontext.current%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396).
 
-### HTTPСервисКонтекст
+### HTTPКонтекст
 
 Реализует контекст текущего web-запроса.
 

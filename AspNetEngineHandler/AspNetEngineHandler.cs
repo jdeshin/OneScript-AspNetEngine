@@ -26,6 +26,7 @@ namespace OneScript.HTTPService
         // Разрешает или запрещает кэширование исходников *.os В Linux должно быть false иначе после изменений исходника старая версия будет в кэше
         // web.config -> <appSettings> -> <add key="CachingEnabled" value="true"/>
         static bool _cachingEnabled;
+        static bool _runAsJRPCServer;
 
         public bool IsReusable
         {
@@ -36,6 +37,7 @@ namespace OneScript.HTTPService
         {
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
             _cachingEnabled = (appSettings["cachingEnabled"] == "true");
+            _runAsJRPCServer = (appSettings["cachingEnabled"] == "true");
 
             // Заставляем создать пул
             int temp = AspNetHostEngine.Pool.Count;
@@ -217,7 +219,96 @@ namespace OneScript.HTTPService
 
             var runner = CreateServiceInstance(module, _eng);
 
-            ProduceResponse(context, runner);
+            if (_runAsJRPCServer)
+                ProduceJRPCResponse(context, runner);
+            else
+                ProduceResponse(context, runner);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ProduceJRPCResponse(HttpContext context, IRuntimeContextInstance runner)
+        {
+            // Преобразуем тело из json
+            OneScript.HTTPService.HTTPServiceRequestImpl request = new OneScript.HTTPService.HTTPServiceRequestImpl(context);
+            ScriptEngine.HostedScript.Library.Json.JSONReader reader = new ScriptEngine.HostedScript.Library.Json.JSONReader();
+            reader.SetString(request.GetBodyAsString());
+            ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions jsonFunctions = (ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions)ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions.CreateInstance();
+
+            // Получаем запрос как структуру из тела
+            ScriptEngine.HostedScript.Library.StructureImpl structOfParams = (ScriptEngine.HostedScript.Library.StructureImpl)jsonFunctions.ReadJSON(reader);
+
+            if (!structOfParams.HasProperty("method"))
+            {
+                // Вызывать нечего, наверное это не jrpc
+                context.Response.StatusCode = 500;
+                context.Response.StatusDescription = "Cannot find a method property";
+                return;
+            }
+
+            // Создаем ответ
+            ScriptEngine.HostedScript.Library.StructureImpl structOfResponse = ScriptEngine.HostedScript.Library.StructureImpl.Constructor();
+
+            // Определяем версию jrpc
+            string jrpcVersion = "1.0";
+
+            if (structOfParams.HasProperty("jsonrpc"))
+                jrpcVersion = structOfParams.GetPropValue("jsonrpc").ToString();
+
+            // Получаем id
+            IValue id = ValueFactory.Create();
+            if (structOfParams.HasProperty("id"))
+                id = structOfParams.GetPropValue("id");
+
+            string methodName = structOfParams.GetPropValue("method").AsString();
+
+            ScriptEngine.HostedScript.Library.ArrayImpl methodParams = null;
+            if (structOfParams.HasProperty("params"))
+                methodParams = (ScriptEngine.HostedScript.Library.ArrayImpl)structOfParams.GetPropValue("params");
+
+            //methodParams.GetIndexedValue()
+            int methodIndex = runner.FindMethod(methodName);
+            MethodInfo methodInfo = runner.GetMethodInfo(methodIndex);
+            IValue []args = new IValue[methodInfo.ArgCount];
+            int i = 0;
+            
+            for(; i < methodParams.Count(); i++)
+            {
+                args[i] = methodParams.GetIndexedValue(ValueFactory.Create(i));
+            }
+
+            // Значения по умолчанию?
+
+            IValue result = ValueFactory.Create();
+
+            if (methodInfo.IsFunction)
+                runner.CallAsFunction(methodIndex, args, out result);
+            else
+                runner.CallAsProcedure(methodIndex, args);
+
+            // Обрабатываем результаты
+            var response = (OneScript.HTTPService.HTTPServiceResponseImpl)result;
+            context.Response.StatusCode = response.StatusCode;
+
+            if (response.Headers != null)
+            {
+                foreach (var ch in response.Headers)
+                {
+                    context.Response.AddHeader(ch.Key.AsString(), ch.Value.AsString());
+                }
+            }
+
+            if (response.Reason != "")
+            {
+                context.Response.Status = response.Reason;
+            }
+
+            if (response.BodyStream != null)
+            {
+                response.BodyStream.Seek(0, SeekOrigin.Begin);
+                response.BodyStream.CopyTo(context.Response.OutputStream);
+            }
+
+            context.Response.Charset = response.ContentCharset;
         }
     }
 }

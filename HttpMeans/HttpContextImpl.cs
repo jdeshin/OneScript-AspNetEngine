@@ -13,16 +13,11 @@ using ScriptEngine.HostedScript.Library.Binary;
 
 namespace OneScript.HTTPService
 {
-    [ContextClass("HTTPСервисКонтекст", "HTTPServiceContext")]
-    public class HTTPServiceContextImpl : AutoContext<HTTPServiceContextImpl>
+    [ContextClass("HTTPКонтекст", "HTTPContext")]
+    public class HTTPContextImpl : AutoContext<HTTPContextImpl>
     {
-        System.Web.HttpContext _context;
-        SessionStateImpl _sessionState;
-
-        public HTTPServiceContextImpl(System.Web.HttpContext context)
+        public HTTPContextImpl()
         {
-            _context = context;
-            _sessionState = new SessionStateImpl(_context);
         }
 
         [ContextProperty("ФизическийПуть", "PhysicalPath")]
@@ -30,7 +25,7 @@ namespace OneScript.HTTPService
         {
             get
             {
-                return ValueFactory.Create(_context.Request.PhysicalPath);
+                return ValueFactory.Create(System.Web.HttpContext.Current.Request.PhysicalPath);
             }
         }
 
@@ -39,7 +34,7 @@ namespace OneScript.HTTPService
         {
             get
             {
-                return ValueFactory.Create(_context.Request.UserHostAddress);
+                return ValueFactory.Create(System.Web.HttpContext.Current.Request.UserHostAddress);
             }
         }
 
@@ -48,9 +43,26 @@ namespace OneScript.HTTPService
         {
             get
             {
-                return _sessionState;
+                return new SessionStateImpl();
             }
         }
 
+        [ContextProperty("Пользователь", "User")]
+        public HttpUserImpll User
+        {
+            get
+            {
+                return new HttpUserImpll();
+            }
+        }
+
+        [ContextProperty("Запрос", "Request")]
+        public HTTPServiceRequestImpl Request
+        {
+            get
+            {
+                return new HTTPServiceRequestImpl(System.Web.HttpContext.Current);
+            }
+        }
     }
 }
