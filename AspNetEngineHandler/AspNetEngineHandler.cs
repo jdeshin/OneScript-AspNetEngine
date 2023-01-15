@@ -37,7 +37,7 @@ namespace OneScript.HTTPService
         {
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
             _cachingEnabled = (appSettings["cachingEnabled"] == "true");
-            _runAsJRPCServer = (appSettings["cachingEnabled"] == "true");
+            _runAsJRPCServer = (appSettings["runAsJRPCServer"] == "true");
 
             // Заставляем создать пул
             int temp = AspNetHostEngine.Pool.Count;
@@ -228,87 +228,144 @@ namespace OneScript.HTTPService
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ProduceJRPCResponse(HttpContext context, IRuntimeContextInstance runner)
         {
-            // Преобразуем тело из json
-            OneScript.HTTPService.HTTPServiceRequestImpl request = new OneScript.HTTPService.HTTPServiceRequestImpl(context);
-            ScriptEngine.HostedScript.Library.Json.JSONReader reader = new ScriptEngine.HostedScript.Library.Json.JSONReader();
-            reader.SetString(request.GetBodyAsString());
+
             ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions jsonFunctions = (ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions)ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions.CreateInstance();
 
-            // Получаем запрос как структуру из тела
-            ScriptEngine.HostedScript.Library.StructureImpl structOfParams = (ScriptEngine.HostedScript.Library.StructureImpl)jsonFunctions.ReadJSON(reader);
+            // Получаем параметры запроса
+            ScriptEngine.HostedScript.Library.StructureImpl structOfParams;
 
-            if (!structOfParams.HasProperty("method"))
+            try
             {
-                // Вызывать нечего, наверное это не jrpc
-                context.Response.StatusCode = 500;
-                context.Response.StatusDescription = "Cannot find a method property";
+                // Преобразуем тело из json
+                OneScript.HTTPService.HTTPServiceRequestImpl request = new OneScript.HTTPService.HTTPServiceRequestImpl(context);
+                ScriptEngine.HostedScript.Library.Json.JSONReader reader = new ScriptEngine.HostedScript.Library.Json.JSONReader();
+                reader.SetString(request.GetBodyAsString());
+                // Получаем запрос как структуру из тела
+                structOfParams = (ScriptEngine.HostedScript.Library.StructureImpl)jsonFunctions.ReadJSON(reader);
+                reader.Close();
+            }
+            catch(Exception ex)
+            {
+                // Ошибка парсинга
+                GenerateErrorResponse(-32700, ex.Message, context);
                 return;
             }
 
-            // Создаем ответ
-            ScriptEngine.HostedScript.Library.StructureImpl structOfResponse = ScriptEngine.HostedScript.Library.StructureImpl.Constructor();
+            // Проверяем наличие свойства method
+            if (!structOfParams.HasProperty("method"))
+            {
+                // Вызывать нечего, наверное это не jrpc. Неправильный запрос
+                GenerateErrorResponse(-32600, "Cannot find a method property", context);
+                return;
+            }
 
-            // Определяем версию jrpc
+            // Определяем версию jrpc. Версия 1 не содержит этого свойства, однако обрабатываем запрос
             string jrpcVersion = "1.0";
 
             if (structOfParams.HasProperty("jsonrpc"))
                 jrpcVersion = structOfParams.GetPropValue("jsonrpc").ToString();
 
             // Получаем id
-            IValue id = ValueFactory.Create();
+            IValue id;
             if (structOfParams.HasProperty("id"))
                 id = structOfParams.GetPropValue("id");
+            else
+            {
+                // Нет id. Неправильный запрос
+                GenerateErrorResponse(-32600, "Cannot find an id property", context);
+                return;
+            }
 
-            string methodName = structOfParams.GetPropValue("method").AsString();
+            int methodIndex = -1;
+            try
+            {
+                string methodName = structOfParams.GetPropValue("method").AsString();
+                methodIndex = runner.FindMethod(methodName);
+            }
+            catch(Exception ex)
+            {
+                // Метод не найден
+                GenerateErrorResponse(-32601, ex.Message, context);
+                return;
+            }
 
+            // Получаем массив параметров. Поддерживаются только запросы с папаметрами попозиционно
             ScriptEngine.HostedScript.Library.ArrayImpl methodParams = null;
             if (structOfParams.HasProperty("params"))
                 methodParams = (ScriptEngine.HostedScript.Library.ArrayImpl)structOfParams.GetPropValue("params");
 
-            //methodParams.GetIndexedValue()
-            int methodIndex = runner.FindMethod(methodName);
+            // Формируем массив параметров для вызова
             MethodInfo methodInfo = runner.GetMethodInfo(methodIndex);
-            IValue []args = new IValue[methodInfo.ArgCount];
-            int i = 0;
-            
-            for(; i < methodParams.Count(); i++)
+            IValue[] args;
+
+            if (methodParams != null)
             {
-                args[i] = methodParams.GetIndexedValue(ValueFactory.Create(i));
+                args = new IValue[methodParams.Count()];
+                int i = 0;
+
+                for (; i < methodParams.Count(); i++)
+                {
+                    args[i] = methodParams.GetIndexedValue(ValueFactory.Create(i));
+                }
             }
+            else
+                args = new IValue[0];
 
             // Значения по умолчанию?
 
             IValue result = ValueFactory.Create();
+            ScriptEngine.HostedScript.Library.StructureImpl structOfResponse = ScriptEngine.HostedScript.Library.StructureImpl.Constructor();
 
-            if (methodInfo.IsFunction)
-                runner.CallAsFunction(methodIndex, args, out result);
-            else
-                runner.CallAsProcedure(methodIndex, args);
+            try
+            {
+                // вызываем функцию или процедуру
+                if (methodInfo.IsFunction)
+                {
+                    runner.CallAsFunction(methodIndex, args, out result);
+                    structOfResponse.Insert("result", result);
+                }
+                else
+                    runner.CallAsProcedure(methodIndex, args);
+            }
+            catch(Exception ex)
+            {
+                // Внутренняя ошибка
+                GenerateErrorResponse(-32603, ex.Message, context);
+                return;
+            }
 
             // Обрабатываем результаты
-            var response = (OneScript.HTTPService.HTTPServiceResponseImpl)result;
-            context.Response.StatusCode = response.StatusCode;
+            context.Response.StatusCode = 200;
+            // Создаем ответ
+            structOfResponse.Insert("jsonrpc", ValueFactory.Create("2.0"));
+            structOfResponse.Insert("id", id);
 
-            if (response.Headers != null)
-            {
-                foreach (var ch in response.Headers)
-                {
-                    context.Response.AddHeader(ch.Key.AsString(), ch.Value.AsString());
-                }
-            }
+            ScriptEngine.HostedScript.Library.Json.JSONWriter writer = new ScriptEngine.HostedScript.Library.Json.JSONWriter();
 
-            if (response.Reason != "")
-            {
-                context.Response.Status = response.Reason;
-            }
+            writer.SetString();
+            jsonFunctions.WriteJSON(writer, structOfResponse);
+            context.Response.Charset = "utf-8";
+            context.Response.Output.Write(writer.Close());
+        }
 
-            if (response.BodyStream != null)
-            {
-                response.BodyStream.Seek(0, SeekOrigin.Begin);
-                response.BodyStream.CopyTo(context.Response.OutputStream);
-            }
+        private static void GenerateErrorResponse(int errorCode, string errorMessage, HttpContext context)
+        {
+            ScriptEngine.HostedScript.Library.StructureImpl structOfResponse = ScriptEngine.HostedScript.Library.StructureImpl.Constructor();
+            ScriptEngine.HostedScript.Library.StructureImpl structOfError = ScriptEngine.HostedScript.Library.StructureImpl.Constructor();
+            ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions jsonFunctions = (ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions)ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions.CreateInstance();
+            ScriptEngine.HostedScript.Library.Json.JSONWriter writer = new ScriptEngine.HostedScript.Library.Json.JSONWriter();
 
-            context.Response.Charset = response.ContentCharset;
+            structOfResponse.Insert("id", ValueFactory.Create());
+
+            structOfError.Insert("code", ValueFactory.Create(errorCode));
+            structOfError.Insert("message", ValueFactory.Create(errorMessage));
+            structOfResponse.Insert("error", structOfError);
+            writer.SetString();
+            jsonFunctions.WriteJSON(writer, structOfResponse);
+            context.Response.Charset = "utf-8";
+            context.Response.Output.Write(writer.Close());
+            context.Response.StatusCode = 200;
+            //context.Response.Charset = response.ContentCharset;
         }
     }
 }
