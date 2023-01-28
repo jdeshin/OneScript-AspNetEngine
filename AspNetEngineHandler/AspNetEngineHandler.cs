@@ -256,11 +256,11 @@ namespace OneScript.HTTPService
             if (structOfParams.HasProperty("id"))
                 id = structOfParams.GetPropValue("id");
 
-            // Проверяем наличие свойства method
-            if (!structOfParams.HasProperty("method"))
+            // Проверяем тип свойства method
+            if (!structOfParams.HasProperty("method") || structOfParams.GetPropValue("method").DataType != DataType.String)
             {
                 // Вызывать нечего, наверное это не jrpc. Неправильный запрос
-                GenerateErrorResponse(-32600, "Cannot find a method property", context, ValueFactory.Create());
+                GenerateErrorResponse(-32600, "Bad method property type", context, ValueFactory.Create());
                 return;
             }
 
@@ -287,8 +287,19 @@ namespace OneScript.HTTPService
             // Получаем массив параметров. Поддерживаются только запросы с папаметрами попозиционно
             ScriptEngine.HostedScript.Library.ArrayImpl methodParams = null;
             if (structOfParams.HasProperty("params"))
-                methodParams = (ScriptEngine.HostedScript.Library.ArrayImpl)structOfParams.GetPropValue("params");
+            {
+                try
+                {
+                    methodParams = (ScriptEngine.HostedScript.Library.ArrayImpl)structOfParams.GetPropValue("params");
+                }
+                catch(Exception ex)
+                {
+                    if (id != ValueFactory.Create())
+                        GenerateErrorResponse(-32602, ex.Message, context, id);
+                    return;
 
+                }
+            }
             // Формируем массив параметров для вызова
             MethodInfo methodInfo = runner.GetMethodInfo(methodIndex);
             IValue[] args;
