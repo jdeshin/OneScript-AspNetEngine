@@ -247,15 +247,20 @@ namespace OneScript.HTTPService
             catch(Exception ex)
             {
                 // Ошибка парсинга
-                GenerateErrorResponse(-32700, ex.Message, context);
+                GenerateErrorResponse(-32700, ex.Message, context, ValueFactory.Create());
                 return;
             }
+
+            // Получаем id
+            IValue id = ValueFactory.Create();
+            if (structOfParams.HasProperty("id"))
+                id = structOfParams.GetPropValue("id");
 
             // Проверяем наличие свойства method
             if (!structOfParams.HasProperty("method"))
             {
                 // Вызывать нечего, наверное это не jrpc. Неправильный запрос
-                GenerateErrorResponse(-32600, "Cannot find a method property", context);
+                GenerateErrorResponse(-32600, "Cannot find a method property", context, ValueFactory.Create());
                 return;
             }
 
@@ -264,17 +269,6 @@ namespace OneScript.HTTPService
 
             if (structOfParams.HasProperty("jsonrpc"))
                 jrpcVersion = structOfParams.GetPropValue("jsonrpc").ToString();
-
-            // Получаем id
-            IValue id;
-            if (structOfParams.HasProperty("id"))
-                id = structOfParams.GetPropValue("id");
-            else
-            {
-                // Нет id. Неправильный запрос
-                GenerateErrorResponse(-32600, "Cannot find an id property", context);
-                return;
-            }
 
             int methodIndex = -1;
             try
@@ -285,7 +279,8 @@ namespace OneScript.HTTPService
             catch(Exception ex)
             {
                 // Метод не найден
-                GenerateErrorResponse(-32601, ex.Message, context);
+                if(id != ValueFactory.Create())
+                    GenerateErrorResponse(-32601, ex.Message, context, id);
                 return;
             }
 
@@ -330,32 +325,37 @@ namespace OneScript.HTTPService
             catch(Exception ex)
             {
                 // Внутренняя ошибка
-                GenerateErrorResponse(-32603, ex.Message, context);
+                if(id != ValueFactory.Create())
+                    GenerateErrorResponse(-32603, ex.Message, context, id);
+
                 return;
             }
 
             // Обрабатываем результаты
             context.Response.StatusCode = 200;
-            // Создаем ответ
-            structOfResponse.Insert("jsonrpc", ValueFactory.Create("2.0"));
-            structOfResponse.Insert("id", id);
+            if (id != null)
+            {
+                // Создаем ответ
+                structOfResponse.Insert("jsonrpc", ValueFactory.Create("2.0"));
+                structOfResponse.Insert("id", id);
 
-            ScriptEngine.HostedScript.Library.Json.JSONWriter writer = new ScriptEngine.HostedScript.Library.Json.JSONWriter();
+                ScriptEngine.HostedScript.Library.Json.JSONWriter writer = new ScriptEngine.HostedScript.Library.Json.JSONWriter();
 
-            writer.SetString();
-            jsonFunctions.WriteJSON(writer, structOfResponse);
-            context.Response.Charset = "utf-8";
-            context.Response.Output.Write(writer.Close());
+                writer.SetString();
+                jsonFunctions.WriteJSON(writer, structOfResponse);
+                context.Response.Charset = "utf-8";
+                context.Response.Output.Write(writer.Close());
+            }
         }
 
-        private static void GenerateErrorResponse(int errorCode, string errorMessage, HttpContext context)
+        private static void GenerateErrorResponse(int errorCode, string errorMessage, HttpContext context, IValue id)
         {
             ScriptEngine.HostedScript.Library.StructureImpl structOfResponse = ScriptEngine.HostedScript.Library.StructureImpl.Constructor();
             ScriptEngine.HostedScript.Library.StructureImpl structOfError = ScriptEngine.HostedScript.Library.StructureImpl.Constructor();
             ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions jsonFunctions = (ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions)ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions.CreateInstance();
             ScriptEngine.HostedScript.Library.Json.JSONWriter writer = new ScriptEngine.HostedScript.Library.Json.JSONWriter();
 
-            structOfResponse.Insert("id", ValueFactory.Create());
+            structOfResponse.Insert("id", id);
 
             structOfError.Insert("code", ValueFactory.Create(errorCode));
             structOfError.Insert("message", ValueFactory.Create(errorMessage));
