@@ -22,7 +22,12 @@ namespace OneScript.HTTPService
 {
     public class AspNetEngineHandler : IHttpHandler, System.Web.SessionState.IRequiresSessionState
     {
-        //AspNetHostEngine _engine;
+        public struct JRPCNotificationParams
+        {
+            public string pathName;
+            public ScriptEngine.HostedScript.Library.StructureImpl jrpcParams;
+        };
+
         // Разрешает или запрещает кэширование исходников *.os В Linux должно быть false иначе после изменений исходника старая версия будет в кэше
         // web.config -> <appSettings> -> <add key="CachingEnabled" value="true"/>
         static bool _cachingEnabled;
@@ -40,31 +45,190 @@ namespace OneScript.HTTPService
             _runAsJRPCServer = (appSettings["runAsJRPCServer"] == "true");
 
             // Заставляем создать пул
-            int temp = AspNetHostEngine.Pool.Count;
+            //int temp = AspNetHostEngine.Pool.Count;
+            AspNetHostEngine.Init();
         }
 
         public AspNetEngineHandler()
         {
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ProcessRequest(HttpContext context)
         {
-            // Получаем экземпляр engine из пула
-            //
-            AspNetHostEngine _eng;
-            AspNetHostEngine.Pool.TryDequeue(out _eng);
+            if (_runAsJRPCServer)
+                ProcessJRPCRequest(context);
+            else
+                ProcessWebRequest(context);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ProcessWebRequest(HttpContext context, ScriptEngine.HostedScript.Library.StructureImpl jrpcParams = null)
+        {
+            AspNetHostEngine eng = null;
 
             try
             {
-                _eng.Engine.EngineInstance.Environment.LoadMemory(MachineInstance.Current);
-                CallScriptHandler(context, _eng);
+                AspNetHostEngine.DequeEngine(out eng);
+                CallScriptHandler(context, eng, jrpcParams);
                 context.Response.End();
             }
             finally
             {
-                if (_eng != null)
-                    AspNetHostEngine.Pool.Enqueue(_eng);
+                AspNetHostEngine.EnqueEngine(eng);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ProcessJRPCRequest(HttpContext context)
+        {
+            ScriptEngine.HostedScript.Library.StructureImpl structOfParams = null;
+
+            try
+            {
+                structOfParams = GetJRPCParams(context);
+            }
+            catch (Exception ex)
+            {
+                // Ошибка парсинга
+                GenerateErrorResponse(-32700, ex.Message, context, ValueFactory.Create());
+                context.Response.End();
+                return;
+            }
+
+            // Проверяем тип свойства method
+            if (!structOfParams.HasProperty("method") || structOfParams.GetPropValue("method").DataType != DataType.String)
+            {
+                // Вызывать нечего, наверное это не jrpc. Неправильный запрос
+                GenerateErrorResponse(-32600, "Bad method property type", context, ValueFactory.Create());
+                context.Response.End();
+                return;
+            }
+
+            // Получаем id
+            IValue id = ValueFactory.CreateNullValue();
+            if (structOfParams.HasProperty("id"))
+                id = structOfParams.GetPropValue("id");
+
+         
+            if (id == ValueFactory.CreateNullValue() || id == null)
+            {
+                // Это notification
+                // Выполняем асинхронно
+                ProcessJRPCNotificationRequest(context, structOfParams);
+                context.Response.StatusCode = 200;
+                context.Response.End();
+                return;
+            }
+
+            // Выполняем синхронно
+            ProcessWebRequest(context, structOfParams);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void ProcessJRPCNotificationRequest(HttpContext context, ScriptEngine.HostedScript.Library.StructureImpl jrpcParams)
+        {
+            // Проверяем доступность эндпоинта
+            LoadedModule module = null;
+            ObjectCache cache = MemoryCache.Default;
+
+            if (_cachingEnabled)
+            {
+                module = cache[context.Request.PhysicalPath] as LoadedModule;
+
+                if (module == null)
+                {
+                    if (!System.IO.File.Exists(context.Request.PhysicalPath))
+                    {
+                        context.Response.StatusCode = 404;
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                if (!System.IO.File.Exists(context.Request.PhysicalPath))
+                {
+                    context.Response.StatusCode = 404;
+                    return;
+                }
+            }
+
+            // Помещаем в очередь
+            JRPCNotificationParams notificationParams = new JRPCNotificationParams();
+            notificationParams.pathName = context.Request.PhysicalPath;
+            notificationParams.jrpcParams = jrpcParams;
+            System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback(AspNetEngineHandler.ExecuteJRPCNotification), notificationParams);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ExecuteJRPCNotification(object notificationParams)
+        {
+            AspNetHostEngine eng = null;
+            ScriptEngine.HostedScript.Library.StructureImpl jrpcParams = ((JRPCNotificationParams)notificationParams).jrpcParams;
+            try
+            {
+                AspNetHostEngine.DequeEngine(out eng);
+                LoadedModule module = eng.LoadModule(((JRPCNotificationParams)notificationParams).pathName);
+                var runner = eng.CreateServiceInstance(module);
+
+                string methodName = jrpcParams.GetPropValue("method").AsString();
+                int methodIndex = runner.FindMethod(methodName);
+
+                // Получаем массив параметров. Поддерживаются только запросы с папаметрами попозиционно
+                ScriptEngine.HostedScript.Library.ArrayImpl methodParams = null;
+                if (jrpcParams.HasProperty("params"))
+                    methodParams = (ScriptEngine.HostedScript.Library.ArrayImpl)jrpcParams.GetPropValue("params");
+
+                // Формируем массив параметров для вызова
+                MethodInfo methodInfo = runner.GetMethodInfo(methodIndex);
+                IValue[] args;
+
+                if (methodParams != null)
+                {
+                    args = new IValue[methodParams.Count()];
+                    int i = 0;
+
+                    for (; i < methodParams.Count(); i++)
+                    {
+                        args[i] = methodParams.GetIndexedValue(ValueFactory.Create(i));
+                    }
+                }
+                else
+                    args = new IValue[0];
+
+                // Значения по умолчанию?
+
+                IValue result = ValueFactory.Create();
+                // вызываем функцию или процедуру
+                if (methodInfo.IsFunction)
+                    runner.CallAsFunction(methodIndex, args, out result);
+                else
+                    runner.CallAsProcedure(methodIndex, args);
+            }
+            finally
+            {
+                AspNetHostEngine.EnqueEngine(eng);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        ScriptEngine.HostedScript.Library.StructureImpl GetJRPCParams(HttpContext context)
+        {
+            ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions jsonFunctions = (ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions)ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions.CreateInstance();
+
+            // Получаем параметры запроса
+            ScriptEngine.HostedScript.Library.StructureImpl structOfParams = null;
+
+            // Преобразуем тело из json
+            OneScript.HTTPService.HTTPServiceRequestImpl request = new OneScript.HTTPService.HTTPServiceRequestImpl(context);
+            ScriptEngine.HostedScript.Library.Json.JSONReader reader = new ScriptEngine.HostedScript.Library.Json.JSONReader();
+            reader.SetString(request.GetBodyAsString());
+            // Получаем запрос как структуру из тела
+            structOfParams = (ScriptEngine.HostedScript.Library.StructureImpl)jsonFunctions.ReadJSON(reader);
+            reader.Close();
+
+            return structOfParams;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -155,147 +319,59 @@ namespace OneScript.HTTPService
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IRuntimeContextInstance CreateServiceInstance(LoadedModule module, AspNetHostEngine _eng)
+        private void CallScriptHandler(HttpContext context, AspNetHostEngine eng, ScriptEngine.HostedScript.Library.StructureImpl jrpcParams = null)
         {
-            var runner = _eng.Engine.EngineInstance.NewObject(module);
-            return runner;
-        }
+            LoadedModule module = eng.LoadModule(context.Request.PhysicalPath);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private LoadedModule LoadByteCode(string filePath, AspNetHostEngine _eng)
-        {
-            var code = _eng.Engine.EngineInstance.Loader.FromFile(filePath);
-            var compiler = _eng.Engine.GetCompilerService();
-            var byteCode = compiler.Compile(code);
-            var module = _eng.Engine.EngineInstance.LoadModuleImage(byteCode);
-            return module;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CallScriptHandler(HttpContext context, AspNetHostEngine _eng)
-        {
-            #region Загружаем скрипт (файл .os)
-            // Кэшируем исходный файл, если файл изменился (изменили скрипт .os) загружаем заново
-            // В Linux под Mono не работает подписка на изменение файла.
-            LoadedModule module = null;
-            //MemoryCache cache = MemoryCache.Default;
-            ObjectCache cache = MemoryCache.Default;
-
-            if (_cachingEnabled)
+            if (module == null)
             {
-                module = cache[context.Request.PhysicalPath] as LoadedModule;
-
-                if (module == null)
-                {
-
-                    // Загружаем файл и помещаем его в кэш
-                    if (!System.IO.File.Exists(context.Request.PhysicalPath))
-                    {
-                        context.Response.StatusCode = 404;
-                        return;
-                    }
-
-                    module = LoadByteCode(context.Request.PhysicalPath, _eng);
-                    CacheItemPolicy policy = new CacheItemPolicy();
-                    List<string> filePaths = new List<string>();
-                    filePaths.Add(context.Request.PhysicalPath);
-                    policy.ChangeMonitors.Add(new HostFileChangeMonitor(filePaths));
-
-                    cache.Set(context.Request.PhysicalPath, module, policy);
-                }
-            }
-            else
-            {
-                if (!System.IO.File.Exists(context.Request.PhysicalPath))
-                {
-                    context.Response.StatusCode = 404;
-                    return;
-                }
-
-                module = LoadByteCode(context.Request.PhysicalPath, _eng);
+                context.Response.StatusCode = 404;
+                return;
             }
 
-            #endregion
+            var runner = eng.CreateServiceInstance(module);
 
-            var runner = CreateServiceInstance(module, _eng);
-
-            if (_runAsJRPCServer)
-                ProduceJRPCResponse(context, runner);
+            if (jrpcParams != null)
+                ProduceJRPCResponse(context, runner, jrpcParams);
             else
                 ProduceResponse(context, runner);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ProduceJRPCResponse(HttpContext context, IRuntimeContextInstance runner)
+        private static void ProduceJRPCResponse(HttpContext context, IRuntimeContextInstance runner, ScriptEngine.HostedScript.Library.StructureImpl jrpcParams)
         {
-
             ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions jsonFunctions = (ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions)ScriptEngine.HostedScript.Library.Json.GlobalJsonFunctions.CreateInstance();
-
-            // Получаем параметры запроса
-            ScriptEngine.HostedScript.Library.StructureImpl structOfParams;
-
-            try
-            {
-                // Преобразуем тело из json
-                OneScript.HTTPService.HTTPServiceRequestImpl request = new OneScript.HTTPService.HTTPServiceRequestImpl(context);
-                ScriptEngine.HostedScript.Library.Json.JSONReader reader = new ScriptEngine.HostedScript.Library.Json.JSONReader();
-                reader.SetString(request.GetBodyAsString());
-                // Получаем запрос как структуру из тела
-                structOfParams = (ScriptEngine.HostedScript.Library.StructureImpl)jsonFunctions.ReadJSON(reader);
-                reader.Close();
-            }
-            catch(Exception ex)
-            {
-                // Ошибка парсинга
-                GenerateErrorResponse(-32700, ex.Message, context, ValueFactory.Create());
-                return;
-            }
-
-            // Получаем id
-            IValue id = ValueFactory.Create();
-            if (structOfParams.HasProperty("id"))
-                id = structOfParams.GetPropValue("id");
-
-            // Проверяем тип свойства method
-            if (!structOfParams.HasProperty("method") || structOfParams.GetPropValue("method").DataType != DataType.String)
-            {
-                // Вызывать нечего, наверное это не jrpc. Неправильный запрос
-                GenerateErrorResponse(-32600, "Bad method property type", context, ValueFactory.Create());
-                return;
-            }
-
+            IValue id = jrpcParams.GetPropValue("id");
             // Определяем версию jrpc. Версия 1 не содержит этого свойства, однако обрабатываем запрос
             string jrpcVersion = "1.0";
 
-            if (structOfParams.HasProperty("jsonrpc"))
-                jrpcVersion = structOfParams.GetPropValue("jsonrpc").ToString();
+            if (jrpcParams.HasProperty("jsonrpc"))
+                jrpcVersion = jrpcParams.GetPropValue("jsonrpc").ToString();
 
             int methodIndex = -1;
             try
             {
-                string methodName = structOfParams.GetPropValue("method").AsString();
+                string methodName = jrpcParams.GetPropValue("method").AsString();
                 methodIndex = runner.FindMethod(methodName);
             }
             catch(Exception ex)
             {
                 // Метод не найден
-                if(id != ValueFactory.Create())
-                    GenerateErrorResponse(-32601, ex.Message, context, id);
+                GenerateErrorResponse(-32601, ex.Message, context, id);
                 return;
             }
 
             // Получаем массив параметров. Поддерживаются только запросы с папаметрами попозиционно
             ScriptEngine.HostedScript.Library.ArrayImpl methodParams = null;
-            if (structOfParams.HasProperty("params"))
+            if (jrpcParams.HasProperty("params"))
             {
                 try
                 {
-                    methodParams = (ScriptEngine.HostedScript.Library.ArrayImpl)structOfParams.GetPropValue("params");
+                    methodParams = (ScriptEngine.HostedScript.Library.ArrayImpl)jrpcParams.GetPropValue("params");
                 }
                 catch(Exception ex)
                 {
-                    if (id != ValueFactory.Create())
-                        GenerateErrorResponse(-32602, ex.Message, context, id);
+                    GenerateErrorResponse(-32602, ex.Message, context, id);
                     return;
 
                 }
@@ -336,29 +412,25 @@ namespace OneScript.HTTPService
             catch(Exception ex)
             {
                 // Внутренняя ошибка
-                if(id != ValueFactory.Create())
-                    GenerateErrorResponse(-32603, ex.Message, context, id);
-
+                GenerateErrorResponse(-32603, ex.Message, context, id);
                 return;
             }
 
             // Обрабатываем результаты
             context.Response.StatusCode = 200;
-            if (id != null)
-            {
-                // Создаем ответ
-                structOfResponse.Insert("jsonrpc", ValueFactory.Create("2.0"));
-                structOfResponse.Insert("id", id);
+            // Создаем ответ
+            structOfResponse.Insert("jsonrpc", ValueFactory.Create("2.0"));
+            structOfResponse.Insert("id", id);
 
-                ScriptEngine.HostedScript.Library.Json.JSONWriter writer = new ScriptEngine.HostedScript.Library.Json.JSONWriter();
+            ScriptEngine.HostedScript.Library.Json.JSONWriter writer = new ScriptEngine.HostedScript.Library.Json.JSONWriter();
 
-                writer.SetString();
-                jsonFunctions.WriteJSON(writer, structOfResponse);
-                context.Response.Charset = "utf-8";
-                context.Response.Output.Write(writer.Close());
-            }
+            writer.SetString();
+            jsonFunctions.WriteJSON(writer, structOfResponse);
+            context.Response.Charset = "utf-8";
+            context.Response.Output.Write(writer.Close());
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void GenerateErrorResponse(int errorCode, string errorMessage, HttpContext context, IValue id)
         {
             ScriptEngine.HostedScript.Library.StructureImpl structOfResponse = ScriptEngine.HostedScript.Library.StructureImpl.Constructor();
@@ -376,7 +448,6 @@ namespace OneScript.HTTPService
             context.Response.Charset = "utf-8";
             context.Response.Output.Write(writer.Close());
             context.Response.StatusCode = 200;
-            //context.Response.Charset = response.ContentCharset;
         }
     }
 }

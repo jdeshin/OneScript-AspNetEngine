@@ -56,6 +56,9 @@ namespace OneScript.HTTPService
             }
         }
 
+        public static IDebugController _debugController = null;
+        //public static DebugServices.BinaryTcpDebugServer tcpDebugServer;
+
         static AspNetHostEngine()
         {
             System.Collections.Specialized.NameValueCollection appSettings = System.Web.Configuration.WebConfigurationManager.AppSettings;
@@ -69,6 +72,16 @@ namespace OneScript.HTTPService
             AspNetLog.Write(logWriter, "Start assemblies loading.");
             try
             {
+
+                if (appSettings["debug"] == "true")
+                {
+                    int debugPort = 2801;
+                    if (appSettings["debugPort"] != null)
+                        debugPort = System.Convert.ToInt16(appSettings["debugPort"]);
+
+                    var tcpDebugServer = new DebugServices.BinaryTcpDebugServer(debugPort);
+                    _debugController = tcpDebugServer.CreateDebugController();
+                }
                 List<System.Reflection.Assembly> assembliesForAttaching = GetAssembliesForAttaching(appSettings, logWriter);
                 System.Collections.Hashtable commonModulesForLoading = GetCommonModulesForLoading(appSettings, logWriter);
                 List<PropertiesInjectorInfo> propertiesInjectorsInfo = GetPropertiesInjectors(appSettings, logWriter);
@@ -191,6 +204,13 @@ namespace OneScript.HTTPService
 
             _hostedScript = new HostedScriptEngine();
 
+            if (appSettings["debug"] == "true")
+            {
+
+
+
+            }
+
             // метод настраивает внутренние переменные у SystemGlobalContext
             if (appSettings["enableEcho"] == "true")
                 _hostedScript.SetGlobalEnvironment(new ASPNetApplicationHost(), new AspEntryScriptSrc(appSettings["startupScript"] ?? HttpContext.Current.Server.MapPath("~/web.config")));
@@ -291,6 +311,100 @@ namespace OneScript.HTTPService
 
             relPath = relPath.Replace("/", System.IO.Path.DirectorySeparatorChar.ToString());
             return System.IO.Path.Combine(baseDir, relPath);
+        }
+        
+        // Работа с jrpc
+        // Получает экземпляр OneScript из очереди
+        public static void DequeEngine(out AspNetHostEngine eng)
+        {
+            AspNetHostEngine.Pool.TryDequeue(out eng);
+
+            if (AspNetHostEngine._debugController != null)
+            {
+                eng.Engine.DebugController = AspNetHostEngine._debugController;
+                eng.Engine.DebugController.Init();
+                eng.Engine.DebugController.AttachToThread();
+                eng.Engine.DebugController.Wait();
+            }
+
+            eng.Engine.EngineInstance.Environment.LoadMemory(MachineInstance.Current);
+        }
+        // Помещает экземпляр OneScript в очередь
+        public static void EnqueEngine(AspNetHostEngine eng)
+        {
+            if (eng != null)
+            {
+                AspNetHostEngine.Pool.Enqueue(eng);
+                if (AspNetHostEngine._debugController != null)
+                {
+                    AspNetHostEngine._debugController.NotifyProcessExit(0);
+                    AspNetHostEngine._debugController.DetachFromThread();
+                }
+            }
+        }
+
+        public LoadedModule LoadByteCode(string filePath)
+        {
+            var code = Engine.EngineInstance.Loader.FromFile(filePath);
+            var compiler = Engine.GetCompilerService();
+            var byteCode = compiler.Compile(code);
+            var module = Engine.EngineInstance.LoadModuleImage(byteCode);
+            return module;
+        }
+
+        public LoadedModule LoadModule(string pathName)
+        {
+            #region Загружаем скрипт (файл .os)
+            // Кэшируем исходный файл, если файл изменился (изменили скрипт .os) загружаем заново
+            // В Linux под Mono не работает подписка на изменение файла.
+            LoadedModule module = null;
+            ObjectCache cache = MemoryCache.Default;
+
+            if (_cachingEnabled)
+            {
+                module = cache[pathName] as LoadedModule;
+
+                if (module == null)
+                {
+
+                    // Загружаем файл и помещаем его в кэш
+                    if (!System.IO.File.Exists(pathName))
+                    {
+                        return null;
+                    }
+
+                    module = LoadByteCode(pathName);
+                    CacheItemPolicy policy = new CacheItemPolicy();
+                    List<string> filePaths = new List<string>();
+                    filePaths.Add(pathName);
+                    policy.ChangeMonitors.Add(new HostFileChangeMonitor(filePaths));
+
+                    cache.Set(pathName, module, policy);
+                }
+            }
+            else
+            {
+                if (!System.IO.File.Exists(pathName))
+                    return null;
+
+                module = LoadByteCode(pathName);
+            }
+
+            #endregion
+
+            return module;
+        }
+
+        public IRuntimeContextInstance CreateServiceInstance(LoadedModule module)
+        {
+            var runner = Engine.EngineInstance.NewObject(module);
+            return runner;
+        }
+
+        // Для запуска статического конструктора
+        public static void Init()
+        {
+            int count = _pool.Count;
         }
     }
 

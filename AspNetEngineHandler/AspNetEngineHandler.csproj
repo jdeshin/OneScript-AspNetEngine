@@ -30,6 +30,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OneScript.DebugProtocol, Version=1.7.0.214, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\OneScript\OneScript.DebugProtocol.dll</HintPath>
+    </Reference>
+    <Reference Include="OneScript.DebugServices, Version=1.7.0.214, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\OneScript\OneScript.DebugServices.dll</HintPath>
+    </Reference>
     <Reference Include="ScriptEngine, Version=1.7.0.214, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\OneScript\ScriptEngine.dll</HintPath>
